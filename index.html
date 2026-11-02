@@ -148,6 +148,14 @@ th.key, td.key { background: var(--focus-bg); }
 .empty { color: var(--muted); padding: 18px; border: 1px dashed var(--line); border-radius: 8px; display: grid; gap: 10px; justify-items: start; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 8px; font-size: 0.95rem; max-width: calc(100% - 32px); }
 footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
+.link-panel { border: 2px solid var(--accent); }
+.pin { font-family: var(--font-num); font-size: 3rem; letter-spacing: 0.22em; font-weight: 500; line-height: 1.1; }
+.pin-row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
+input.pin-input { font: 500 1.5rem var(--font-num); letter-spacing: 0.18em; width: 9ch; padding: 8px 12px; min-height: 48px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 100%; }
+.live { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 680px) { .live { grid-template-columns: minmax(0, 1fr); } }
+.live-title { font-size: 1.35rem; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 <script type="importmap">
@@ -162,6 +170,40 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
   <p class="lead">Teste scurte de echilibru cu Meta Quest 3. Casca măsoară mișcarea capului cât timp stai în picioare sau te apleci. Repetate regulat, arată dacă echilibrul se îmbunătățește, rămâne la fel sau regresează.</p>
   <span class="status" id="xrStatus">Verific dacă există cască VR…</span>
 </header>
+
+<section class="panel link-panel" aria-labelledby="h-link">
+  <div class="panel-head"><h2 id="h-link">Legătura cu calculatorul</h2><span class="status" id="linkState">opțional</span></div>
+  <p class="hint">Un însoțitor poate completa formularul, porni probele și urmări testul live de pe calculator. Măsurătorile merg direct între cele două dispozitive, prin rețeaua de acasă; un server public ajută doar la găsirea lor.</p>
+  <div id="linkHost" hidden style="display:grid;gap:12px">
+    <div class="pin-row"><span class="lbl">Codul pentru calculator</span><span class="pin" id="pinOut">······</span></div>
+    <p class="hint" id="hostHint">Spune-l însoțitorului: îl scrie pe calculator, în aceeași pagină.</p>
+    <div id="hostBig" hidden style="display:grid;gap:8px">
+      <button class="primary huge" id="btnBig" disabled>Pornește testul</button>
+      <p class="hint" id="bigHint"></p>
+    </div>
+    <div class="actions"><button class="small" id="btnGuestMode">Sunt pe calculator: introduc un cod</button></div>
+  </div>
+  <div id="linkGuest" style="display:grid;gap:12px">
+    <div class="pin-row">
+      <label for="pinIn" class="lbl">Codul de pe cască</label>
+      <input id="pinIn" class="pin-input" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="000000">
+      <button class="primary" id="btnConnect">Conectează</button>
+    </div>
+    <div class="actions"><button class="small" id="btnHostMode">Sunt pe cască: arată codul</button></div>
+  </div>
+  <div id="liveBox" hidden class="live">
+    <canvas id="livePlot" class="plot square" width="600" height="600" aria-label="Poziția capului, văzută de sus, în timp real"></canvas>
+    <div class="field" style="gap:12px">
+      <span class="live-title" id="liveTitle"></span>
+      <span id="liveSub"></span>
+      <div class="actions">
+        <button class="primary" id="btnNext" disabled>Pornește proba</button>
+        <button class="danger" id="btnAbort" disabled>Oprește tot</button>
+      </div>
+      <p class="hint">„Pornește proba” face același lucru ca trăgaciul din cască, iar „Oprește tot” ca butonul grip. Rămâi lângă persoana testată: imaginea vine cu o mică întârziere.</p>
+    </div>
+  </div>
+</section>
 
 <section class="panel" aria-labelledby="h-jurnal">
   <div class="panel-head"><h2 id="h-jurnal">1. Cum te simți azi</h2><span class="hint">Se salvează împreună cu testul</span></div>
@@ -202,6 +244,9 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
     <div class="seg" role="radiogroup">
       <label for="k-sway"><input type="radio" name="kind" id="k-sway" value="sway" checked><span>Test de balans<small>Stai fără să te miști, pe podea și pe pernă. De 2–3 ori pe săptămână.</small></span></label>
       <label for="k-los"><input type="radio" name="kind" id="k-los" value="los"><span>Limite de stabilitate<small>Te apleci în 8 direcții, fără să faci pas. O dată pe săptămână.</small></span></label>
+    </div>
+    <div class="checks" style="margin-top:6px">
+      <label class="check" for="j-practice"><input type="checkbox" id="j-practice"><span>Test de probă (nu se salvează)<small>Pentru încercări: rezultatul se vede, dar nu intră în istoric și dispare la reîncărcarea paginii.</small></span></label>
     </div>
   </div>
 
@@ -461,8 +506,16 @@ const $ = id => document.getElementById(id);
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const kindOf = s => s.kind || 'sway';
 
+// legătura cu calculatorul (WebRTC prin PeerJS); role: 'host' = casca, 'guest' = calculatorul
+const link = { role: null, peer: null, conn: null, open: false, sessions: [], remote: null, live: null, trail: [] };
+let practiceSessions = [];   // teste de probă: doar în memorie, niciodată în IndexedDB
+
 let toastTimer = null;
 function toast(msg) {
+  if (link.role === 'host') linkSend({ t: 'toast', msg });
+  showToast(msg);
+}
+function showToast(msg) {
   const t = $('toast'); t.textContent = msg; t.hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3800);
 }
@@ -563,7 +616,18 @@ function updateStartState() {
   else if (kind === 'sway' && !conds.includes('open')) hint = 'Fără proba de referință nu se pot calcula rapoartele.';
   $('btnStart').disabled = !(xrSupported && okConds && safe) || running;
   $('btnSim').disabled = !okConds || running;
+  if (link.role === 'guest' && link.open) {
+    const rs = link.remote || {};
+    $('btnStart').disabled = true;
+    $('btnSim').disabled = !!rs.running;
+    hint = rs.running ? 'Testul rulează pe cască.' : rs.enabled ? 'Gata. Persoana cu casca apasă butonul mare „Pornește testul”.' : (rs.hint ? 'Pe cască: ' + rs.hint : '');
+  }
   $('startHint').textContent = hint;
+  if (link.role === 'host') {
+    $('btnBig').disabled = $('btnStart').disabled;
+    $('bigHint').textContent = running ? 'Testul rulează.' : ($('btnStart').disabled ? hint : 'Când ți se spune, apasă butonul.');
+    linkSend({ t: 'start', enabled: !$('btnStart').disabled, hint, running });
+  }
   savePrefs();
 }
 ['c-open', 'c-closed', 'c-okn', 'c-foam_open', 'c-foam_closed', 'k-wall', 'k-person', 'k-ok', 's-dur', 's-stance', 'k-sway', 'k-los']
@@ -860,6 +924,27 @@ function onSqueeze() {
 function onFrame(t, tr) {
   run.lastPose = tr; run.lastT = t;
   if (run.kind === 'los') losFrame(t, tr); else swayFrame(t, tr);
+  if (link.open && link.role === 'host' && (run.liveTick = (run.liveTick || 0) + 1) % 7 === 0) linkSend({ t: 'live', st: liveState(tr) });
+}
+// ce vede calculatorul: faza, proba, secundele rămase și poziția capului față de start (cm)
+function liveState(tr) {
+  if (!running) return { running: false };
+  const st = { running, kind: run.kind, phase: run.phase, idx: run.idx, n: run.kind === 'los' ? LOS_DIRS.length : run.conds.length };
+  if (run.kind === 'los') {
+    const L = run.los, i = Math.min(L.idx, LOS_DIRS.length - 1);
+    st.idx = L.idx; st.dir = i; st.label = LOS_DIRS[i].name; st.maxes = L.maxes;
+    if (L.center && tr) Object.assign(st, losRel(tr));
+    if (run.phase === 'los_center' || run.phase === 'los_lean') st.secLeft = Math.max(0, Math.ceil(L.phaseEnd - run.lastT));
+  } else {
+    const c = run.conds[run.idx];
+    st.label = c ? COND[c].label : '';
+    if (run.phase === 'record' && run.rec && tr) {
+      const dx = tr.position.x - run.rec.start[0], dz = tr.position.z - run.rec.start[1], [fx, fz] = run.rec.heading;
+      st.ap = (dx * fx + dz * fz) * 100; st.ml = (dx * -fz + dz * fx) * 100;
+      st.secLeft = Math.max(0, Math.ceil(run.dur - (run.lastT - run.rec.t0)));
+    } else if (run.phase === 'countdown') st.secLeft = Math.max(0, Math.ceil(run.countEnd - run.lastT));
+  }
+  return st;
 }
 
 async function startXR() {
@@ -911,9 +996,10 @@ async function endRun(message, sessionAlreadyEnded) {
   if (!sessionAlreadyEnded && run.session) { try { await run.session.end(); } catch (e) {} }
   run.session = null;
   const hasData = run.kind === 'los' ? run.los.results.length > 0 : run.trials.length > 0;
-  if (hasData) { await saveSession({ simulated: false }); toast(message || 'Test salvat.'); }
+  if (hasData) { const saved = await saveSession({ simulated: false }); toast(saved ? (message || 'Test salvat.') : 'Test de probă: rezultatul nu s-a salvat.'); }
   else if (message) toast(message);
   updateStartState();
+  linkSend({ t: 'live', st: liveState(null) });
 }
 
 async function saveSession({ simulated }) {
@@ -929,8 +1015,10 @@ async function saveSession({ simulated }) {
     trials: run.kind === 'los' ? [] : run.trials
   };
   if (run.kind === 'los') sess.los = { dirs: run.los.results, trace: run.los.trace };
+  if ($('j-practice').checked) { sess.practice = true; practiceSessions.push(sess); await renderAll(); return false; }
   await dbPut(sess);
   await renderAll();
+  return true;
 }
 
 // ---------- simulare (pentru verificare pe PC)
@@ -957,14 +1045,15 @@ function simulateLos() {
   const base = { 0: 12, 45: 10, 90: 8, 135: 6, 180: 7, 225: 7, 270: 9, 315: 11 };
   return LOS_DIRS.map(d => ({ angle: d.angle, name: d.name, max_cm: Math.round((base[d.angle] * (0.85 + Math.random() * 0.3)) * 10) / 10, stopped: false }));
 }
-$('btnSim').addEventListener('click', async () => {
+async function runSimulation() {
   run.kind = testKind();
   run.journal = readJournal(); run.settings = settings();
   if (run.kind === 'los') { run.los = { results: simulateLos(), trace: null }; run.trials = []; }
   else run.trials = run.settings.conds.map(c => simulateTrial(c, run.settings.duration));
-  await saveSession({ simulated: true });
-  toast('Simulare salvată (marcată ca simulare).');
-});
+  const saved = await saveSession({ simulated: true });
+  toast(saved ? 'Simulare salvată (marcată ca simulare).' : 'Simulare de probă: nu s-a salvat.');
+}
+$('btnSim').addEventListener('click', () => { if (link.role === 'guest' && link.open) linkSend({ t: 'cmd', c: 'sim' }); else runSimulation(); });
 $('btnStart').addEventListener('click', () => { if (!$('btnStart').disabled) startXR(); });
 
 // ---------- afișare
@@ -975,9 +1064,13 @@ const fmt = (v, d = 1) => (v == null || isNaN(v)) ? '–' : Number(v).toFixed(d)
 const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
 async function renderAll() {
-  sessions = (await dbAll()).sort((a, b) => a.date.localeCompare(b.date));
+  if (link.role === 'guest' && link.open) sessions = link.sessions.slice();   // pe calculator: ce trimite casca
+  else sessions = (await dbAll()).concat(practiceSessions);
+  sessions.sort((a, b) => a.date.localeCompare(b.date));
   renderLast(); renderLos(); renderEvo();
+  if (link.role === 'host') linkSend({ t: 'sessions', list: liteSessions(sessions) });
 }
+const savedSessions = () => sessions.filter(s => !s.practice);
 
 function profileCard(p, title, desc, key) {
   let v;
@@ -992,7 +1085,7 @@ function renderLast() {
   const last = sway[sway.length - 1];
   $('lastEmpty').hidden = !!last; $('lastBody').hidden = !last;
   if (!last) { $('lastDate').textContent = ''; return; }
-  $('lastDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + ' · picioare ' + (last.settings?.stance || '–');
+  $('lastDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (last.practice ? ' · test de probă, nesalvat' : '') + ' · picioare ' + (last.settings?.stance || '–');
 
   const pr = sensoryProfile(last.trials);
   $('profile').innerHTML =
@@ -1059,7 +1152,7 @@ function renderLos() {
   const last = list[list.length - 1], prev = list[list.length - 2];
   $('losEmpty').hidden = !!last; $('losBody').hidden = !last;
   if (!last) { $('losDate').textContent = ''; return; }
-  $('losDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (prev ? ` · comparat cu ${fmtShort(prev.date)}` : '');
+  $('losDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (last.practice ? ' · test de probă, nesalvat' : '') + (prev ? ` · comparat cu ${fmtShort(prev.date)}` : '');
   const cv = $('losPlot'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
   ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
   let maxR = LOS_TARGET * 100;
@@ -1102,11 +1195,11 @@ function renderLos() {
 
 function renderEvo() {
   const stance = $('s-stance').value, metric = $('evoMetric').value;
-  const list = sessions.filter(s => kindOf(s) === 'sway' && (s.settings?.stance || 'apropiate') === stance);
+  const list = savedSessions().filter(s => kindOf(s) === 'sway' && (s.settings?.stance || 'apropiate') === stance);
   $('evoEmpty').hidden = list.length > 0; $('evoBody').hidden = list.length === 0;
   $('evoHint').textContent = list.length ? `${list.length} teste de balans cu picioarele ${stance}` : '';
 
-  const rowsHtml = sessions.slice().reverse().map(s => {
+  const rowsHtml = savedSessions().reverse().map(s => {
     const j = s.journal || {};
     const tail = `<td class="num">${j.instabilitate ?? '–'}</td><td class="num">${j.ameteala ?? '–'}</td><td>${j.perioada_grea ? '<span class="pill bad">da</span>' : 'nu'}</td><td><button class="small danger" data-del="${esc(s.id)}">Șterge</button></td>`;
     const date = `<td>${fmtDate(s.date)}${s.simulated ? ' <span class="pill">simulare</span>' : ''}</td><td>${kindOf(s) === 'los' ? 'aplecări' : 'balans'} · ${esc(s.settings?.stance || '–')}</td>`;
@@ -1179,6 +1272,7 @@ document.addEventListener('click', async e => {
     setTimeout(() => { if (b.isConnected) { b.classList.remove('armed'); b.textContent = 'Șterge'; } }, 4000);
     return;
   }
+  if (link.role === 'guest' && link.open) { linkSend({ t: 'cmd', c: 'del', id: b.dataset.del }); return; }
   await dbDel(b.dataset.del); await renderAll(); toast('Test șters.');
 });
 
@@ -1196,6 +1290,7 @@ const csvCell = v => { const s = v == null ? '' : String(v); return /[",;\n]/.te
 const stamp = () => new Date().toISOString().slice(0, 10);
 
 $('btnCsv').addEventListener('click', () => {
+  const sessions = savedSessions();
   if (!sessions.length) { toast('Nu există încă teste.'); return; }
   const head = ['data', 'tip_test', 'simulare', 'picioare', 'nesiguranta_0_10', 'ameteala_0_10', 'somn_ore', 'zi_mai_grea', 'durere_cap', 'observatii',
     'proba', 'oprita', 'motiv_oprire', 'durata_analizata_s', 'viteza_cm_s', 'traseu_cm', 'arie95_cm2', 'rms_fata_spate_cm', 'rms_lateral_cm', 'amplitudine_fata_spate_cm', 'amplitudine_lateral_cm',
@@ -1218,23 +1313,35 @@ $('btnCsv').addEventListener('click', () => {
   });
   download(`jurnal-echilibru-${stamp()}.csv`, '﻿' + lines.join('\n'), 'text/csv;charset=utf-8');
 });
-$('btnJson').addEventListener('click', () => {
-  if (!sessions.length) { toast('Nu există încă teste.'); return; }
-  download(`jurnal-echilibru-backup-${stamp()}.json`, JSON.stringify({ format: 'jurnal-echilibru', version: 2, exported: new Date().toISOString(), clinical_notes: loadClinical(), sessions }), 'application/json');
-});
-$('btnRaw').addEventListener('click', () => {
+// copia completă și datele brute se fac mereu pe cască; calculatorul le cere prin legătură
+function backupFile() {
+  const list = savedSessions();
+  if (!list.length) return null;
+  return { name: `jurnal-echilibru-backup-${stamp()}.json`, text: JSON.stringify({ format: 'jurnal-echilibru', version: 2, exported: new Date().toISOString(), clinical_notes: loadClinical(), sessions: list }), type: 'application/json' };
+}
+function rawFile() {
   const sway = sessions.filter(s => kindOf(s) === 'sway');
   const last = sway[sway.length - 1];
-  if (!last) return;
+  if (!last) return null;
   const lines = ['proba,t_s,x_m,y_m,z_m,qx,qy,qz,qw'];
   last.trials.forEach(t => {
     const s = t.samples; if (!s) return;
     for (let i = 0; i < s.t.length; i++) lines.push([t.cond, s.t[i], s.x[i], s.y[i], s.z[i], s.qx[i], s.qy[i], s.qz[i], s.qw[i]].join(','));
   });
-  download(`echilibru-brut-${last.date.slice(0, 16).replace(/[:T]/g, '-')}.csv`, lines.join('\n'), 'text/csv');
+  return { name: `echilibru-brut-${last.date.slice(0, 16).replace(/[:T]/g, '-')}.csv`, text: lines.join('\n'), type: 'text/csv' };
+}
+$('btnJson').addEventListener('click', () => {
+  if (link.role === 'guest' && link.open) { linkSend({ t: 'get', what: 'backup' }); toast('Cer copia de la cască…'); return; }
+  const f = backupFile(); if (!f) { toast('Nu există încă teste.'); return; }
+  download(f.name, f.text, f.type);
+});
+$('btnRaw').addEventListener('click', () => {
+  if (link.role === 'guest' && link.open) { linkSend({ t: 'get', what: 'raw' }); return; }
+  const f = rawFile(); if (f) download(f.name, f.text, f.type);
 });
 $('fileImport').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
+  if (link.role === 'guest' && link.open) { toast('Importul se face direct pe cască.'); e.target.value = ''; return; }
   try {
     const data = JSON.parse(await f.text());
     const list = Array.isArray(data) ? data : data.sessions;
@@ -1263,9 +1370,232 @@ $('clin').value = loadClinical();
 $('clin').addEventListener('input', saveClinical);
 saveClinical();
 
+// ===================== legătura cu calculatorul =====================
+// Casca (host) afișează un cod de 6 cifre; calculatorul (guest) îl introduce și cele două browsere
+// se leagă direct (WebRTC, criptat). Serverul public PeerJS face doar „întâlnirea”: prin el nu trec
+// date de test. Fără server TURN: dacă legătura directă nu merge, nu se face deloc, nu printr-un releu.
+const PEER_PREFIX = 'balance-journal-xr-';
+const PEER_OPTS = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } };
+const SYNC_IDS = ['j-instab', 'j-amet', 'j-somn', 'j-greu', 'j-cap', 'j-note', 'j-practice', 'k-sway', 'k-los', 's-stance', 's-dur',
+  'c-open', 'c-closed', 'c-okn', 'c-foam_open', 'c-foam_closed', 'k-wall', 'k-person', 'k-ok', 'clin'];
+let applyingRemote = false;
+
+function linkSend(m) { if (link.open && link.conn) { try { link.conn.send(m); } catch (e) {} } }
+function setLinkState(text, ok) { const el = $('linkState'); el.textContent = text; el.className = 'status' + (ok === true ? ' ok' : ok === false ? ' no' : ''); }
+function loadPeerJs() {
+  return new Promise((resolve, reject) => {
+    if (window.Peer) return resolve();
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+    sc.onload = () => resolve(); sc.onerror = () => reject(new Error('PeerJS'));
+    document.head.appendChild(sc);
+  });
+}
+function fieldState(id) { const el = $(id); return (el.type === 'checkbox' || el.type === 'radio') ? { id, checked: el.checked } : { id, value: el.value }; }
+function applyField(f) {
+  const el = $(f.id); if (!el || !SYNC_IDS.includes(f.id)) return;
+  applyingRemote = true;
+  try {
+    if ('checked' in f) el.checked = !!f.checked; else el.value = f.value;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  } finally { applyingRemote = false; }
+}
+SYNC_IDS.forEach(id => ['input', 'change'].forEach(ev => $(id).addEventListener(ev, () => { if (!applyingRemote) linkSend({ t: 'field', f: fieldState(id) }); })));
+
+// calculatorul primește testele fără eșantioanele brute; traseul doar pentru ultimul test de balans
+function liteSessions(list) {
+  const lastSway = list.slice().reverse().find(s => kindOf(s) === 'sway');
+  return list.map(s => ({
+    ...s,
+    los: s.los ? { dirs: s.los.dirs } : s.los,
+    trials: (s.trials || []).map(t => ({ cond: t.cond, stopped: t.stopped, reason: t.reason, metrics: t.metrics ? (s === lastSway ? t.metrics : { ...t.metrics, trace: null }) : null }))
+  }));
+}
+
+function showLinkUi() {
+  const host = link.role === 'host', guest = link.role === 'guest';
+  $('linkHost').hidden = !host;
+  $('linkGuest').hidden = host || (guest && link.open);
+  $('hostBig').hidden = !(host && link.open);
+  $('liveBox').hidden = !(guest && link.open);
+  $('btnGuestMode').hidden = host && link.open;
+}
+function resetPeer() {
+  try { if (link.conn) link.conn.close(); } catch (e) {}
+  try { if (link.peer) link.peer.destroy(); } catch (e) {}
+  link.peer = null; link.conn = null; link.open = false;
+}
+
+async function startHost() {
+  resetPeer();
+  link.role = 'host'; showLinkUi();
+  $('pinOut').textContent = '······';
+  setLinkState('pregătesc codul…');
+  try { await loadPeerJs(); } catch (e) { setLinkState('fără internet: legătura nu e disponibilă', false); return; }
+  const tryPin = () => {
+    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    const peer = new Peer(PEER_PREFIX + pin, PEER_OPTS);
+    link.peer = peer;
+    peer.on('open', () => { $('pinOut').textContent = pin.slice(0, 3) + ' ' + pin.slice(3); setLinkState('aștept calculatorul'); });
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') { peer.destroy(); if (link.role === 'host') tryPin(); }
+      else setLinkState('legătura nu merge: ' + err.type, false);
+    });
+    peer.on('disconnected', () => { if (link.peer === peer && link.role === 'host') { try { peer.reconnect(); } catch (e) {} } });
+    peer.on('connection', conn => {
+      if (link.open) { conn.on('open', () => { conn.send({ t: 'busy' }); setTimeout(() => conn.close(), 500); }); return; }
+      attachConn(conn);
+    });
+  };
+  tryPin();
+}
+
+async function startGuest(pin) {
+  resetPeer();
+  link.role = 'guest'; showLinkUi();
+  setLinkState('mă conectez…');
+  try { await loadPeerJs(); } catch (e) { setLinkState('fără internet: legătura nu e disponibilă', false); return; }
+  const peer = new Peer(PEER_OPTS);
+  link.peer = peer;
+  peer.on('error', err => setLinkState(err.type === 'peer-unavailable' ? 'codul nu e activ: verifică cifrele de pe cască' : 'legătura nu merge: ' + err.type, false));
+  peer.on('open', () => attachConn(peer.connect(PEER_PREFIX + pin, { reliable: true })));
+}
+
+function attachConn(conn) {
+  link.conn = conn;
+  conn.on('open', () => { link.open = true; onLinkOpen(); });
+  conn.on('data', onLinkData);
+  conn.on('close', () => { if (link.conn === conn) { link.open = false; link.conn = null; onLinkClose(); } });
+  conn.on('error', () => {});
+}
+
+async function onLinkOpen() {
+  showLinkUi();
+  if (link.role === 'host') {
+    setLinkState('conectat la calculator', true);
+    $('hostHint').textContent = 'Conectat. Însoțitorul completează totul de pe calculator.';
+    linkSend({ t: 'hello', fields: SYNC_IDS.map(fieldState), sessions: liteSessions(sessions) });
+    updateStartState();
+    linkSend({ t: 'live', st: liveState(run.lastPose) });
+  } else {
+    setLinkState('conectat la cască', true);
+    link.trail = [];
+  }
+}
+async function onLinkClose() {
+  showLinkUi();
+  if (link.role === 'host') {
+    setLinkState('calculatorul s-a deconectat · codul rămâne același', false);
+    $('hostHint').textContent = 'Spune-l însoțitorului: îl scrie pe calculator, în aceeași pagină.';
+    updateStartState();
+  } else {
+    setLinkState('legătura s-a întrerupt', false);
+    link.remote = null; link.live = null;
+    await renderAll(); updateStartState();
+  }
+}
+
+async function onLinkData(m) {
+  if (!m || typeof m !== 'object') return;
+  if (link.role === 'guest') {
+    if (m.t === 'hello') { (m.fields || []).forEach(applyField); link.sessions = m.sessions || []; await renderAll(); updateStartState(); }
+    else if (m.t === 'field') applyField(m.f);
+    else if (m.t === 'start') { link.remote = m; updateStartState(); }
+    else if (m.t === 'sessions') { link.sessions = m.list || []; await renderAll(); }
+    else if (m.t === 'live') renderLive(m.st || {});
+    else if (m.t === 'toast') showToast(m.msg);
+    else if (m.t === 'file') { if (m.file) download(m.file.name, m.file.text, m.file.type); else showToast('Nu există încă teste.'); }
+    else if (m.t === 'busy') { setLinkState('casca e deja conectată la alt calculator', false); resetPeer(); showLinkUi(); }
+  } else if (link.role === 'host') {
+    if (m.t === 'field') applyField(m.f);
+    else if (m.t === 'cmd') {
+      if (m.c === 'select') onSelect();
+      else if (m.c === 'stop') onSqueeze();
+      else if (m.c === 'sim' && !running) await runSimulation();
+      else if (m.c === 'del' && m.id) { await dbDel(m.id); practiceSessions = practiceSessions.filter(s => s.id !== m.id); await renderAll(); toast('Test șters.'); }
+    } else if (m.t === 'get') linkSend({ t: 'file', file: m.what === 'raw' ? rawFile() : backupFile() });
+  }
+}
+
+// ---------- vederea live, pe calculator
+function renderLive(st) {
+  link.live = st;
+  const on = !!st.running;
+  $('btnNext').disabled = !(on && st.phase === 'ready');
+  $('btnAbort').disabled = !on;
+  let title = 'Testul nu rulează', sub = 'Completează formularul de mai jos. Apoi persoana cu casca apasă butonul mare „Pornește testul”.';
+  if (on && st.kind === 'los') {
+    title = `Limite de stabilitate · ${Math.min(st.idx + 1, st.n)} din ${st.n} · ${st.label}`;
+    sub = st.phase === 'ready' ? 'Stă drept, la mijloc. Apasă „Pornește proba” când e gata.'
+      : st.phase === 'los_center' ? `Drept, la mijloc · ${st.secLeft} s`
+      : st.phase === 'los_lean' ? `Se apleacă spre ${st.label} · ${st.secLeft} s`
+      : st.phase === 'done' ? 'Test terminat. Se salvează…' : '';
+  } else if (on) {
+    title = `Proba ${Math.min(st.idx + 1, st.n)} din ${st.n} · ${st.label}`;
+    sub = st.phase === 'ready' ? 'Așteaptă. Apasă „Pornește proba” când stă pregătită.'
+      : st.phase === 'countdown' ? `Începe în ${st.secLeft}…`
+      : st.phase === 'record' ? `Înregistrez · mai sunt ${st.secLeft} s`
+      : st.phase === 'done' ? 'Test terminat. Se salvează…' : '';
+  }
+  $('liveTitle').textContent = title; $('liveSub').textContent = sub;
+  if (on && st.ap != null) { link.trail.push([st.ap, st.ml]); if (link.trail.length > 90) link.trail.shift(); }
+  if (!on || (st.kind !== 'los' && st.phase !== 'record')) link.trail = [];
+  drawLive(st);
+}
+function drawLive(st) {
+  const cv = $('livePlot'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2;
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
+  const los = st.kind === 'los';
+  const half = los ? 22 : 6;   // cm de la centru la margine
+  const k = (W / 2 - 40) / half;
+  ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  const step = los ? 5 : 1;
+  for (let v = step; v <= half; v += step) { ctx.beginPath(); ctx.arc(cx, cy, v * k, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.fillStyle = css('--muted'); ctx.font = '22px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+  ctx.fillText('înainte', cx, 28); ctx.textAlign = 'left'; ctx.fillText(`cercuri la ${step} cm`, 14, H - 14);
+  if (los) {
+    ctx.strokeStyle = css('--muted'); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx, cy, LOS_TARGET * 100 * k, 0, Math.PI * 2); ctx.stroke();
+    if (st.running && st.dir != null) {
+      const a = LOS_DIRS[st.dir].angle * Math.PI / 180;
+      ctx.strokeStyle = css('--accent'); ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.sin(a) * LOS_TARGET * 100 * k, cy - Math.cos(a) * LOS_TARGET * 100 * k); ctx.stroke();
+    }
+    (st.maxes || []).forEach((v, i) => {
+      if (v == null) return;
+      const a = LOS_DIRS[i].angle * Math.PI / 180;
+      ctx.fillStyle = css('--accent'); ctx.beginPath(); ctx.arc(cx + Math.sin(a) * v * k, cy - Math.cos(a) * v * k, 8, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+  if (link.trail.length > 1) {
+    ctx.strokeStyle = css('--accent'); ctx.globalAlpha = 0.45; ctx.lineWidth = 3; ctx.beginPath();
+    link.trail.forEach(([ap, ml], i) => { const x = cx + ml * k, y = cy - ap * k; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  if (st.running && st.ap != null) {
+    let x = st.ml * k, y = -st.ap * k;
+    const L = Math.hypot(x, y), lim = W / 2 - 24, out = L > lim;
+    if (out) { x *= lim / L; y *= lim / L; }
+    ctx.fillStyle = out ? css('--bad') : '#ff5a36'; ctx.beginPath(); ctx.arc(cx + x, cy + y, 13, 0, Math.PI * 2); ctx.fill();
+    if (!los) { ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.fillText(`${fmt(Math.hypot(st.ap, st.ml), 1)} cm (oprire la 20)`, W - 14, H - 14); }
+  }
+}
+
+$('btnConnect').addEventListener('click', () => {
+  const pin = $('pinIn').value.replace(/\D/g, '');
+  if (pin.length !== 6) { toast('Codul are 6 cifre.'); return; }
+  startGuest(pin);
+});
+$('pinIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnConnect').click(); });
+$('btnHostMode').addEventListener('click', () => startHost());
+$('btnGuestMode').addEventListener('click', () => { resetPeer(); link.role = null; showLinkUi(); setLinkState('opțional'); });
+$('btnBig').addEventListener('click', () => { if (!$('btnStart').disabled) startXR(); });
+$('btnNext').addEventListener('click', () => linkSend({ t: 'cmd', c: 'select' }));
+$('btnAbort').addEventListener('click', () => linkSend({ t: 'cmd', c: 'stop' }));
+addEventListener('pagehide', () => resetPeer());
+
 loadPrefs();
 updateStartState();
-detectXR();
+detectXR().then(() => { if (/OculusBrowser|Quest/.test(navigator.userAgent)) startHost(); });
 renderAll();
 </script>
 </body>

@@ -30,6 +30,8 @@ I built it for a member of my family, so the interface is in Romanian. **All res
 
 **Limits of stability** (once a week): a top-down map shows the head as a red dot. For each of eight directions: 3 seconds centred, then a slow lean from the ankles, without lifting the feet, towards a 15 cm target circle, then back.
 
+**Practice test:** a checkbox runs the whole test and shows the result without saving it, so a family member can try it without polluting the journal.
+
 **Safety stops:** a sway condition stops on its own if the head moves more than 20 cm from where it started, and a lean stops beyond 45 cm (a step). A stopped condition is recorded as such: that is information too.
 
 ## What it measures
@@ -47,13 +49,21 @@ For limits of stability: the furthest excursion in each direction, the area of t
 
 The metric functions are pure and kept together at the top of the script (`METRICS-START` to `METRICS-END`), so they can be tested on their own.
 
+## Companion mode: run the test from a computer
+
+The person wearing the headset should not have to fight a 2D interface. When the page opens in the Quest Browser it shows a **six-digit code**; the companion types it into the same page on a computer, and the two browsers connect **directly to each other** (WebRTC, encrypted end to end).
+
+From the computer the companion fills in the journal, chooses the test and the conditions, ticks the safety checks, starts each condition and can stop everything. A live top-down view shows where the head is, with the trail of the last few seconds and the distance to the 20 cm safety stop. Results, charts, deletions and the backup all work from the computer. The only thing the headset wearer does is press one large **Start** button, because browsers allow an immersive session to start only from a gesture on the device itself.
+
+How the data travels: the public PeerJS server only introduces the two browsers to each other (it sees that two devices want to connect, never the test data). There is deliberately **no TURN relay**: if a direct connection is not possible, the link simply does not open instead of routing measurements through a third party. The computer receives the results without the raw head samples; the full backup is produced on the headset and sent over the same direct link.
+
 ## Where the data lives
 
 - Every test is saved in the headset browser's **IndexedDB**, tied to the page's address. Opening the same address on another device shows an empty journal.
 - **Notes from the clinical evaluation** (for example which direction or condition the doctor asked to watch) can be typed in once. They stay in the browser's local storage and appear next to the test instructions.
 - **Export for the doctor:** a CSV with one row per condition (journal, metrics, ratios). **Raw data:** the head samples of the last test as CSV. **Backup:** a complete JSON file, which can be imported back.
 - Clearing the browser data deletes the journal, so a monthly JSON backup on a computer is the safety net.
-- The page itself loads three.js from jsDelivr and fonts from Google Fonts. Nothing is ever sent back.
+- The page itself loads three.js from jsDelivr, PeerJS from cdnjs (only for companion mode) and fonts from Google Fonts. Test data is never sent to any of them.
 
 ## Try it without a headset
 
@@ -72,7 +82,7 @@ Keep the address once someone starts testing: the data belongs to it. Moving to 
 
 I wrote the specification, the test protocol and the safety rules; the code was written with Claude Code under my direction and checked in the browser with the simulation mode. The protocol follows clinical posturography (sensory organisation and limits of stability), adapted to what a headset can measure at home.
 
-**Stack:** HTML, CSS and JavaScript in one file · WebXR (immersive-ar with passthrough, immersive-vr as a fallback) · three.js · Canvas 2D charts · IndexedDB · Web Audio for the beeps
+**Stack:** HTML, CSS and JavaScript in one file · WebXR (immersive-ar with passthrough, immersive-vr as a fallback) · three.js · WebRTC data channels through PeerJS · Canvas 2D charts · IndexedDB · Web Audio for the beeps
 
 ## License
 
