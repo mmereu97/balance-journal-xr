@@ -155,6 +155,9 @@ input.pin-input { font: 500 1.5rem var(--font-num); letter-spacing: 0.18em; widt
 button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 100%; }
 .live { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (max-width: 680px) { .live { grid-template-columns: minmax(0, 1fr); } }
+.who { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.who select { width: auto; min-width: 14ch; }
+.prof .ref { font-size: 0.82rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 4px; margin-top: 2px; }
 .live-title { font-size: 1.35rem; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -207,6 +210,15 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
 
 <section class="panel" aria-labelledby="h-jurnal">
   <div class="panel-head"><h2 id="h-jurnal">1. Cum te simți azi</h2><span class="hint">Se salvează împreună cu testul</span></div>
+  <div class="who">
+    <label for="profileSel" class="lbl">Persoana testată</label>
+    <select id="profileSel"></select>
+    <button class="small" id="btnProfileAdd">+ Persoană nouă</button>
+    <button class="small" id="btnProfileRen">Redenumește</button>
+    <label for="refSel" class="lbl">Compară cu</label>
+    <select id="refSel"></select>
+    <span class="hint" style="flex-basis:100%">Fiecare persoană are testele, graficele și notițele ei. „Compară cu” arată, discret, mediile altei persoane, de exemplu un reper de om sănătos.</span>
+  </div>
   <div class="grid2">
     <div class="field">
       <label for="j-instab">Nesiguranță la mers azi</label>
@@ -315,6 +327,7 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
     <div class="field" style="gap:10px">
       <h3>Profil senzorial: de câte ori crește oscilația față de proba de referință</h3>
       <div class="profile" id="profile"></div>
+      <p class="hint" id="refNote" hidden></p>
     </div>
     <div class="two">
       <div class="field">
@@ -509,6 +522,15 @@ const kindOf = s => s.kind || 'sway';
 // legătura cu calculatorul (WebRTC prin PeerJS); role: 'host' = casca, 'guest' = calculatorul
 const link = { role: null, peer: null, conn: null, open: false, sessions: [], remote: null, live: null, trail: [] };
 let practiceSessions = [];   // teste de probă: doar în memorie, niciodată în IndexedDB
+let allSessions = [];        // toate persoanele; `sessions` = doar persoana aleasă
+
+// ---------- persoane (profiluri); numele și notițele stau doar în acest browser
+const DEFAULT_PROFILE = 'p1';   // testele dinainte de profiluri îi aparțin primei persoane
+const profileOf = s => s.profile || DEFAULT_PROFILE;
+let profiles = [{ id: DEFAULT_PROFILE, name: 'Persoana 1' }];
+const curProfile = () => $('profileSel').value || DEFAULT_PROFILE;
+const profileName = id => (profiles.find(p => p.id === id) || {}).name || id;
+const clinKey = id => id === DEFAULT_PROFILE ? 'je-clinical' : 'je-clinical-' + id;
 
 let toastTimer = null;
 function toast(msg) {
@@ -616,6 +638,7 @@ function updateStartState() {
   else if (kind === 'sway' && !conds.includes('open')) hint = 'Fără proba de referință nu se pot calcula rapoartele.';
   $('btnStart').disabled = !(xrSupported && okConds && safe) || running;
   $('btnSim').disabled = !okConds || running;
+  $('profileSel').disabled = running;
   if (link.role === 'guest' && link.open) {
     const rs = link.remote || {};
     $('btnStart').disabled = true;
@@ -625,6 +648,7 @@ function updateStartState() {
   $('startHint').textContent = hint;
   if (link.role === 'host') {
     $('btnBig').disabled = $('btnStart').disabled;
+    $('btnBig').textContent = 'Pornește testul: ' + profileName(curProfile());
     $('bigHint').textContent = running ? 'Testul rulează.' : ($('btnStart').disabled ? hint : 'Când ți se spune, apasă butonul.');
     linkSend({ t: 'start', enabled: !$('btnStart').disabled, hint, running });
   }
@@ -1008,6 +1032,7 @@ async function saveSession({ simulated }) {
     id: now.toISOString() + '-' + Math.random().toString(36).slice(2, 7),
     date: now.toISOString(),
     kind: run.kind,
+    profile: curProfile(),
     simulated: !!simulated,
     device: simulated ? 'simulare' : (navigator.userAgent.includes('Quest') ? 'Meta Quest' : 'WebXR'),
     journal: run.journal,
@@ -1064,35 +1089,53 @@ const fmt = (v, d = 1) => (v == null || isNaN(v)) ? '–' : Number(v).toFixed(d)
 const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
 async function renderAll() {
-  if (link.role === 'guest' && link.open) sessions = link.sessions.slice();   // pe calculator: ce trimite casca
-  else sessions = (await dbAll()).concat(practiceSessions);
-  sessions.sort((a, b) => a.date.localeCompare(b.date));
+  if (link.role === 'guest' && link.open) allSessions = link.sessions.slice();   // pe calculator: ce trimite casca
+  else allSessions = (await dbAll()).concat(practiceSessions);
+  allSessions.sort((a, b) => a.date.localeCompare(b.date));
+  sessions = allSessions.filter(s => profileOf(s) === curProfile());
   renderLast(); renderLos(); renderEvo();
-  if (link.role === 'host') linkSend({ t: 'sessions', list: liteSessions(sessions) });
+  if (link.role === 'host') linkSend({ t: 'sessions', list: liteSessions(allSessions) });
 }
 const savedSessions = () => sessions.filter(s => !s.practice);
 
-function profileCard(p, title, desc, key) {
+// mediile altei persoane (doar teste reale salvate, cu aceeași poziție a picioarelor)
+function refAverages() {
+  const ref = $('refSel').value;
+  if (!ref || ref === curProfile()) return null;
+  const stance = $('s-stance').value;
+  const list = allSessions.filter(s => profileOf(s) === ref && !s.practice && !s.simulated && kindOf(s) === 'sway' && (s.settings?.stance || 'apropiate') === stance);
+  const avg = a => { const v = a.filter(x => x != null); return v.length ? v.reduce((x, y) => x + y, 0) / v.length : null; };
+  const ratios = {}, metric = {};
+  ['romberg', 'foam', 'vestibular', 'okn'].forEach(k => { ratios[k] = avg(list.map(s => { const p = sensoryProfile(s.trials)[k]; return p && !p.stopped ? p.value : null; })); });
+  ['velocity_cms', 'rmsML_cm', 'rmsAP_cm'].forEach(m => { metric[m] = {}; ORDER.forEach(c => { metric[m][c] = avg(list.map(s => { const t = s.trials.find(x => x.cond === c); return t && t.metrics && !t.stopped ? t.metrics[m] : null; })); }); });
+  return { name: profileName(ref), n: list.length, ratios, metric };
+}
+
+function profileCard(p, title, desc, key, ref = '') {
   let v;
   if (!p) v = '<span class="v">–</span>';
   else if (p.stopped) v = '<span class="v" style="color:var(--bad)">oprită</span>';
   else v = `<span class="v">×${fmt(p.value, 2)}</span>`;
-  return `<div class="prof${key ? ' key' : ''}">${key ? '<span class="tag">proba cea mai exigentă</span>' : ''}<span class="lbl">${title}</span>${v}<p>${desc}</p></div>`;
+  return `<div class="prof${key ? ' key' : ''}">${key ? '<span class="tag">proba cea mai exigentă</span>' : ''}<span class="lbl">${title}</span>${v}<p>${desc}</p>${ref ? `<p class="ref">${ref}</p>` : ''}</div>`;
 }
 
 function renderLast() {
   const sway = sessions.filter(s => kindOf(s) === 'sway');
   const last = sway[sway.length - 1];
   $('lastEmpty').hidden = !!last; $('lastBody').hidden = !last;
-  if (!last) { $('lastDate').textContent = ''; return; }
-  $('lastDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (last.practice ? ' · test de probă, nesalvat' : '') + ' · picioare ' + (last.settings?.stance || '–');
+  if (!last) { $('lastDate').textContent = ''; $('refNote').hidden = true; return; }
+  $('lastDate').textContent = profileName(profileOf(last)) + ' · ' + fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (last.practice ? ' · test de probă, nesalvat' : '') + ' · picioare ' + (last.settings?.stance || '–');
 
   const pr = sensoryProfile(last.trials);
+  const ra = refAverages();
+  const rr = k => ra && ra.n && ra.ratios[k] != null ? `${esc(ra.name)}: ×${fmt(ra.ratios[k], 2)}` : '';
   $('profile').innerHTML =
-    profileCard(pr.romberg, 'Fără vedere', 'Podea, ochi închiși. Cât de mult se bazează echilibrul pe ochi.') +
-    profileCard(pr.foam, 'Fără sprijinul tălpilor', 'Pernă, ochi deschiși. Cât contează sensibilitatea din picioare.') +
-    profileCard(pr.vestibular, 'Doar urechea internă', 'Pernă, ochi închiși. Corespunde condiției 5 de la posturografie.', true) +
-    (pr.okn ? profileCard(pr.okn, 'Vedere înșelătoare', 'Dungi în mișcare. Cât perturbă echilibrul mișcarea din jur.') : '');
+    profileCard(pr.romberg, 'Fără vedere', 'Podea, ochi închiși. Cât de mult se bazează echilibrul pe ochi.', false, rr('romberg')) +
+    profileCard(pr.foam, 'Fără sprijinul tălpilor', 'Pernă, ochi deschiși. Cât contează sensibilitatea din picioare.', false, rr('foam')) +
+    profileCard(pr.vestibular, 'Doar urechea internă', 'Pernă, ochi închiși. Corespunde condiției 5 de la posturografie.', true, rr('vestibular')) +
+    (pr.okn ? profileCard(pr.okn, 'Vedere înșelătoare', 'Dungi în mișcare. Cât perturbă echilibrul mișcarea din jur.', false, rr('okn')) : '');
+  $('refNote').hidden = !ra;
+  if (ra) $('refNote').textContent = ra.n ? `Sub cifre: media lui ${ra.name} din ${ra.n} ${ra.n === 1 ? 'test real' : 'teste reale'}, cu aceeași poziție a picioarelor.` : `${ra.name} nu are încă teste reale cu aceeași poziție a picioarelor.`;
 
   const { ctx, W, H } = { ctx: $('trace').getContext('2d'), W: $('trace').width, H: $('trace').height };
   ctx.clearRect(0, 0, W, H);
@@ -1152,7 +1195,7 @@ function renderLos() {
   const last = list[list.length - 1], prev = list[list.length - 2];
   $('losEmpty').hidden = !!last; $('losBody').hidden = !last;
   if (!last) { $('losDate').textContent = ''; return; }
-  $('losDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (last.practice ? ' · test de probă, nesalvat' : '') + (prev ? ` · comparat cu ${fmtShort(prev.date)}` : '');
+  $('losDate').textContent = profileName(profileOf(last)) + ' · ' + fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (last.practice ? ' · test de probă, nesalvat' : '') + (prev ? ` · comparat cu ${fmtShort(prev.date)}` : '');
   const cv = $('losPlot'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
   ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
   let maxR = LOS_TARGET * 100;
@@ -1197,7 +1240,7 @@ function renderEvo() {
   const stance = $('s-stance').value, metric = $('evoMetric').value;
   const list = savedSessions().filter(s => kindOf(s) === 'sway' && (s.settings?.stance || 'apropiate') === stance);
   $('evoEmpty').hidden = list.length > 0; $('evoBody').hidden = list.length === 0;
-  $('evoHint').textContent = list.length ? `${list.length} teste de balans cu picioarele ${stance}` : '';
+  $('evoHint').textContent = list.length ? `${profileName(curProfile())} · ${list.length} teste de balans cu picioarele ${stance}` : '';
 
   const rowsHtml = savedSessions().reverse().map(s => {
     const j = s.journal || {};
@@ -1215,24 +1258,26 @@ function renderEvo() {
 
   // serii
   let series;
+  const ra = refAverages(), hasRef = !!(ra && ra.n);
   if (metric === 'ratio') {
     const keys = [['romberg', 'Fără vedere', '--c-closed'], ['foam', 'Fără sprijinul tălpilor', '--c-foam-open'], ['vestibular', 'Doar urechea internă', '--c-foam-closed']];
-    series = keys.map(([k, name, col]) => ({ name, color: css(col), pts: list.map(s => { const p = sensoryProfile(s.trials)[k]; return { v: p && !p.stopped ? p.value : null, stopped: !!(p && p.stopped), sim: s.simulated }; }) }));
+    series = keys.map(([k, name, col]) => ({ name, color: css(col), ref: hasRef ? ra.ratios[k] : null, pts: list.map(s => { const p = sensoryProfile(s.trials)[k]; return { v: p && !p.stopped ? p.value : null, stopped: !!(p && p.stopped), sim: s.simulated }; }) }));
     $('evoExplain').textContent = 'De câte ori crește oscilația față de proba pe podea cu ochii deschiși. O valoare care scade în timp înseamnă că acel sistem compensează mai bine. Linia „Doar urechea internă” e proba cea mai exigentă.';
   } else {
-    series = ORDER.map(c => ({ name: COND[c].label, color: css(COND[c].color), pts: list.map(s => { const t = s.trials.find(x => x.cond === c); return { v: t && t.metrics && !t.stopped ? t.metrics[metric] : null, stopped: !!(t && t.stopped), sim: s.simulated }; }) }))
+    series = ORDER.map(c => ({ name: COND[c].label, color: css(COND[c].color), ref: hasRef ? ra.metric[metric][c] : null, pts: list.map(s => { const t = s.trials.find(x => x.cond === c); return { v: t && t.metrics && !t.stopped ? t.metrics[metric] : null, stopped: !!(t && t.stopped), sim: s.simulated }; }) }))
       .filter(se => se.pts.some(p => p.v != null || p.stopped));
     const what = { velocity_cms: 'viteza medie de oscilație a capului, în cm/s', rmsML_cm: 'cât oscilează capul stânga–dreapta (RMS), în cm', rmsAP_cm: 'cât oscilează capul față–spate (RMS), în cm' }[metric];
     $('evoExplain').textContent = `Axa verticală: ${what}. Mai jos înseamnă mai stabil. Contează tendința de-a lungul săptămânilor, nu o singură zi. „×” jos = probă oprită.`;
   }
   $('evoLegend').innerHTML = series.map(se => `<span><i style="background:${se.color}"></i>${se.name}</span>`).join('') +
-    '<span><i class="dot" style="background:var(--bad-bg);border:1px solid var(--bad)"></i>Zi mai grea decât de obicei</span><span><i class="dot" style="border:2px solid var(--muted)"></i>Simulare</span>';
+    '<span><i class="dot" style="background:var(--bad-bg);border:1px solid var(--bad)"></i>Zi mai grea decât de obicei</span><span><i class="dot" style="border:2px solid var(--muted)"></i>Simulare</span>' +
+    (hasRef ? `<span><i class="dash"></i>Media lui ${esc(ra.name)} (${ra.n} ${ra.n === 1 ? 'test' : 'teste'})</span>` : '');
 
   const cv = $('evo'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
   ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
   const L = 84, R = 24, T = 24, B = 64;
   let maxV = metric === 'ratio' ? 2 : 0.5;
-  series.forEach(se => se.pts.forEach(p => { if (p.v != null) maxV = Math.max(maxV, p.v); }));
+  series.forEach(se => { se.pts.forEach(p => { if (p.v != null) maxV = Math.max(maxV, p.v); }); if (se.ref != null) maxV = Math.max(maxV, se.ref); });
   const step = maxV <= 2 ? 0.5 : maxV <= 5 ? 1 : maxV <= 10 ? 2 : 5;
   const top = Math.ceil(maxV / step) * step;
   const n = list.length;
@@ -1246,6 +1291,12 @@ function renderEvo() {
     ctx.fillText(fmt(v, step < 1 ? 1 : 0), L - 12, Y(v) + 7);
   }
   if (metric === 'ratio') { ctx.strokeStyle = css('--muted'); ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(L, Y(1)); ctx.lineTo(W - R, Y(1)); ctx.stroke(); ctx.setLineDash([]); }
+  series.forEach(se => {
+    if (se.ref == null) return;
+    ctx.strokeStyle = se.color; ctx.globalAlpha = 0.55; ctx.lineWidth = 2; ctx.setLineDash([12, 8]);
+    ctx.beginPath(); ctx.moveTo(L, Y(se.ref)); ctx.lineTo(W - R, Y(se.ref)); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  });
   ctx.textAlign = 'center'; ctx.fillStyle = css('--muted');
   const every = Math.max(1, Math.ceil(n / 10));
   list.forEach((s, i) => { if (i % every === 0 || i === n - 1) { ctx.textAlign = n > 1 && i === n - 1 ? 'right' : n > 1 && i === 0 ? 'left' : 'center'; ctx.fillText(fmtShort(s.date), X(i) + (ctx.textAlign === 'right' ? 6 : ctx.textAlign === 'left' ? -6 : 0), H - B + 34); } }); ctx.textAlign = 'center';
@@ -1292,14 +1343,14 @@ const stamp = () => new Date().toISOString().slice(0, 10);
 $('btnCsv').addEventListener('click', () => {
   const sessions = savedSessions();
   if (!sessions.length) { toast('Nu există încă teste.'); return; }
-  const head = ['data', 'tip_test', 'simulare', 'picioare', 'nesiguranta_0_10', 'ameteala_0_10', 'somn_ore', 'zi_mai_grea', 'durere_cap', 'observatii',
+  const head = ['data', 'persoana', 'tip_test', 'simulare', 'picioare', 'nesiguranta_0_10', 'ameteala_0_10', 'somn_ore', 'zi_mai_grea', 'durere_cap', 'observatii',
     'proba', 'oprita', 'motiv_oprire', 'durata_analizata_s', 'viteza_cm_s', 'traseu_cm', 'arie95_cm2', 'rms_fata_spate_cm', 'rms_lateral_cm', 'amplitudine_fata_spate_cm', 'amplitudine_lateral_cm',
     'raport_fara_vedere', 'raport_pe_perna', 'raport_doar_ureche_interna', 'limita_aplecare_cm'];
   const lines = [head.join(',')];
   const pv = p => p == null ? '' : p.stopped ? 'oprita' : p.value;
   sessions.forEach(s => {
     const j = s.journal || {};
-    const common = [s.date, kindOf(s) === 'los' ? 'limite stabilitate' : 'balans', s.simulated ? 'da' : 'nu', s.settings?.stance, j.instabilitate, j.ameteala, j.somn_ore, j.perioada_grea ? 'da' : 'nu', j.durere_cap ? 'da' : 'nu', j.observatii];
+    const common = [s.date, profileName(profileOf(s)), kindOf(s) === 'los' ? 'limite stabilitate' : 'balans', s.simulated ? 'da' : 'nu', s.settings?.stance, j.instabilitate, j.ameteala, j.somn_ore, j.perioada_grea ? 'da' : 'nu', j.durere_cap ? 'da' : 'nu', j.observatii];
     if (kindOf(s) === 'los') {
       s.los.dirs.forEach(d => lines.push([...common, 'aplecare ' + d.name, d.stopped ? 'da' : 'nu', '', '', '', '', '', '', '', '', '', '', '', '', d.max_cm].map(csvCell).join(',')));
       return;
@@ -1315,9 +1366,10 @@ $('btnCsv').addEventListener('click', () => {
 });
 // copia completă și datele brute se fac mereu pe cască; calculatorul le cere prin legătură
 function backupFile() {
-  const list = savedSessions();
+  const list = allSessions.filter(s => !s.practice);
   if (!list.length) return null;
-  return { name: `jurnal-echilibru-backup-${stamp()}.json`, text: JSON.stringify({ format: 'jurnal-echilibru', version: 2, exported: new Date().toISOString(), clinical_notes: loadClinical(), sessions: list }), type: 'application/json' };
+  const people = profiles.map(p => ({ id: p.id, name: p.name, clinical: loadClinical(p.id) }));
+  return { name: `jurnal-echilibru-backup-${stamp()}.json`, text: JSON.stringify({ format: 'jurnal-echilibru', version: 3, exported: new Date().toISOString(), profiles: people, clinical_notes: loadClinical(DEFAULT_PROFILE), sessions: list }), type: 'application/json' };
 }
 function rawFile() {
   const sway = sessions.filter(s => kindOf(s) === 'sway');
@@ -1346,7 +1398,14 @@ $('fileImport').addEventListener('change', async e => {
     const data = JSON.parse(await f.text());
     const list = Array.isArray(data) ? data : data.sessions;
     if (!Array.isArray(list)) throw new Error('fișierul nu conține teste');
-    if (typeof data.clinical_notes === 'string' && data.clinical_notes && !loadClinical()) { $('clin').value = data.clinical_notes; saveClinical(); }
+    if (Array.isArray(data.profiles)) {
+      data.profiles.forEach(pp => {
+        if (!pp || typeof pp.id !== 'string' || typeof pp.name !== 'string') return;
+        if (!profiles.some(x => x.id === pp.id)) profiles.push({ id: pp.id, name: pp.name.slice(0, 40) });
+        if (typeof pp.clinical === 'string' && pp.clinical && !loadClinical(pp.id)) { try { localStorage.setItem(clinKey(pp.id), pp.clinical); } catch (e) {} }
+      });
+      fillProfileSelects(curProfile(), $('refSel').value); saveProfiles(); $('clin').value = loadClinical(); showClinical(); broadcastProfiles();
+    } else if (typeof data.clinical_notes === 'string' && data.clinical_notes && !loadClinical(DEFAULT_PROFILE)) { try { localStorage.setItem(clinKey(DEFAULT_PROFILE), data.clinical_notes); } catch (e) {} $('clin').value = loadClinical(); showClinical(); }
     let n = 0;
     for (const s of list) {
       const ok = s && s.id && s.date && (Array.isArray(s.trials) || (s.los && Array.isArray(s.los.dirs)));
@@ -1360,15 +1419,67 @@ $('fileImport').addEventListener('change', async e => {
 try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderLast(); renderLos(); renderEvo(); }); } catch (e) {}
 
 // notițele din evaluarea clinică: doar în acest browser, afișate lângă instrucțiunile testului
-function loadClinical() { try { return localStorage.getItem('je-clinical') || ''; } catch (e) { return ''; } }
+function loadClinical(id = curProfile()) { try { return localStorage.getItem(clinKey(id)) || ''; } catch (e) { return ''; } }
+function showClinical() { const v = $('clin').value.trim(); $('clinNoteText').textContent = v; $('clinNote').hidden = !v; }
 function saveClinical() {
-  const v = $('clin').value.trim();
-  try { localStorage.setItem('je-clinical', v); } catch (e) {}
-  $('clinNoteText').textContent = v; $('clinNote').hidden = !v;
+  // pe calculator notițele doar se afișează: rămân salvate numai pe cască
+  if (!(link.role === 'guest' && link.open)) { try { localStorage.setItem(clinKey(curProfile()), $('clin').value.trim()); } catch (e) {} }
+  showClinical();
 }
-$('clin').value = loadClinical();
 $('clin').addEventListener('input', saveClinical);
-saveClinical();
+
+// ---------- persoane
+function fillProfileSelects(cur, ref) {
+  $('profileSel').innerHTML = profiles.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  $('profileSel').value = profiles.some(p => p.id === cur) ? cur : profiles[0].id;
+  const others = profiles.filter(p => p.id !== $('profileSel').value);
+  $('refSel').innerHTML = '<option value="">nimeni</option>' + others.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  $('refSel').value = others.some(p => p.id === ref) ? ref : '';
+  $('btnProfileRen').disabled = false;
+}
+function loadProfiles() {
+  let cur = DEFAULT_PROFILE, ref = '';
+  try {
+    const list = JSON.parse(localStorage.getItem('je-profiles') || 'null');
+    if (Array.isArray(list) && list.length) profiles = list;
+    cur = localStorage.getItem('je-profile') || DEFAULT_PROFILE; ref = localStorage.getItem('je-ref') || '';
+  } catch (e) {}
+  fillProfileSelects(cur, ref);
+}
+function saveProfiles() {
+  if (link.role === 'guest' && link.open) return;   // pe calculator: lista vine de pe cască
+  try { localStorage.setItem('je-profiles', JSON.stringify(profiles)); localStorage.setItem('je-profile', curProfile()); localStorage.setItem('je-ref', $('refSel').value); } catch (e) {}
+}
+function broadcastProfiles() { if (link.role === 'host') linkSend({ t: 'profiles', profiles, cur: curProfile(), ref: $('refSel').value }); }
+function addProfile(name) {
+  const id = 'p' + Date.now().toString(36);
+  profiles.push({ id, name: name.slice(0, 40) });
+  fillProfileSelects(id, ''); saveProfiles(); broadcastProfiles();
+  $('profileSel').dispatchEvent(new Event('change'));
+}
+function renameProfile(id, name) {
+  const pr = profiles.find(x => x.id === id); if (!pr) return;
+  pr.name = name.slice(0, 40);
+  fillProfileSelects(curProfile(), $('refSel').value); saveProfiles(); broadcastProfiles(); renderAll();
+}
+$('profileSel').addEventListener('change', async () => {
+  fillProfileSelects(curProfile(), $('refSel').value); saveProfiles();
+  $('clin').value = loadClinical(); showClinical();
+  if (link.role === 'host') linkSend({ t: 'field', f: fieldState('clin') });
+  await renderAll(); updateStartState();
+});
+$('refSel').addEventListener('change', () => { saveProfiles(); renderLast(); renderEvo(); });
+$('btnProfileAdd').addEventListener('click', () => {
+  const name = (prompt('Numele persoanei noi:') || '').trim(); if (!name) return;
+  if (link.role === 'guest' && link.open) linkSend({ t: 'cmd', c: 'profileAdd', name }); else addProfile(name);
+});
+$('btnProfileRen').addEventListener('click', () => {
+  const name = (prompt('Numele nou pentru „' + profileName(curProfile()) + '”:', profileName(curProfile())) || '').trim(); if (!name) return;
+  if (link.role === 'guest' && link.open) linkSend({ t: 'cmd', c: 'profileRen', id: curProfile(), name }); else renameProfile(curProfile(), name);
+});
+loadProfiles();
+$('clin').value = loadClinical();
+showClinical();
 
 // ===================== legătura cu calculatorul =====================
 // Casca (host) afișează un cod de 6 cifre; calculatorul (guest) îl introduce și cele două browsere
@@ -1376,7 +1487,7 @@ saveClinical();
 // date de test. Fără server TURN: dacă legătura directă nu merge, nu se face deloc, nu printr-un releu.
 const PEER_PREFIX = 'balance-journal-xr-';
 const PEER_OPTS = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } };
-const SYNC_IDS = ['j-instab', 'j-amet', 'j-somn', 'j-greu', 'j-cap', 'j-note', 'j-practice', 'k-sway', 'k-los', 's-stance', 's-dur',
+const SYNC_IDS = ['profileSel', 'refSel', 'j-instab', 'j-amet', 'j-somn', 'j-greu', 'j-cap', 'j-note', 'j-practice', 'k-sway', 'k-los', 's-stance', 's-dur',
   'c-open', 'c-closed', 'c-okn', 'c-foam_open', 'c-foam_closed', 'k-wall', 'k-person', 'k-ok', 'clin'];
 let applyingRemote = false;
 
@@ -1405,11 +1516,12 @@ SYNC_IDS.forEach(id => ['input', 'change'].forEach(ev => $(id).addEventListener(
 
 // calculatorul primește testele fără eșantioanele brute; traseul doar pentru ultimul test de balans
 function liteSessions(list) {
-  const lastSway = list.slice().reverse().find(s => kindOf(s) === 'sway');
+  const keep = new Set(), seen = new Set();   // traseul se păstrează la ultimul test de balans al fiecărei persoane
+  list.slice().reverse().forEach(s => { if (kindOf(s) === 'sway' && !seen.has(profileOf(s))) { seen.add(profileOf(s)); keep.add(s.id); } });
   return list.map(s => ({
     ...s,
     los: s.los ? { dirs: s.los.dirs } : s.los,
-    trials: (s.trials || []).map(t => ({ cond: t.cond, stopped: t.stopped, reason: t.reason, metrics: t.metrics ? (s === lastSway ? t.metrics : { ...t.metrics, trace: null }) : null }))
+    trials: (s.trials || []).map(t => ({ cond: t.cond, stopped: t.stopped, reason: t.reason, metrics: t.metrics ? (keep.has(s.id) ? t.metrics : { ...t.metrics, trace: null }) : null }))
   }));
 }
 
@@ -1475,7 +1587,7 @@ async function onLinkOpen() {
   if (link.role === 'host') {
     setLinkState('conectat la calculator', true);
     $('hostHint').textContent = 'Conectat. Însoțitorul completează totul de pe calculator.';
-    linkSend({ t: 'hello', fields: SYNC_IDS.map(fieldState), sessions: liteSessions(sessions) });
+    linkSend({ t: 'hello', profiles, fields: SYNC_IDS.map(fieldState), sessions: liteSessions(allSessions) });
     updateStartState();
     linkSend({ t: 'live', st: liveState(run.lastPose) });
   } else {
@@ -1492,6 +1604,7 @@ async function onLinkClose() {
   } else {
     setLinkState('legătura s-a întrerupt', false);
     link.remote = null; link.live = null;
+    loadProfiles(); $('clin').value = loadClinical(); showClinical();
     await renderAll(); updateStartState();
   }
 }
@@ -1499,7 +1612,13 @@ async function onLinkClose() {
 async function onLinkData(m) {
   if (!m || typeof m !== 'object') return;
   if (link.role === 'guest') {
-    if (m.t === 'hello') { (m.fields || []).forEach(applyField); link.sessions = m.sessions || []; await renderAll(); updateStartState(); }
+    if (m.t === 'hello') {
+      if (Array.isArray(m.profiles) && m.profiles.length) { profiles = m.profiles; fillProfileSelects(DEFAULT_PROFILE, ''); }
+      link.sessions = m.sessions || [];
+      (m.fields || []).forEach(applyField);
+      await renderAll(); updateStartState();
+    }
+    else if (m.t === 'profiles') { if (Array.isArray(m.profiles) && m.profiles.length) { profiles = m.profiles; fillProfileSelects(m.cur, m.ref); await renderAll(); updateStartState(); } }
     else if (m.t === 'field') applyField(m.f);
     else if (m.t === 'start') { link.remote = m; updateStartState(); }
     else if (m.t === 'sessions') { link.sessions = m.list || []; await renderAll(); }
@@ -1513,6 +1632,8 @@ async function onLinkData(m) {
       if (m.c === 'select') onSelect();
       else if (m.c === 'stop') onSqueeze();
       else if (m.c === 'sim' && !running) await runSimulation();
+      else if (m.c === 'profileAdd' && typeof m.name === 'string' && m.name.trim()) addProfile(m.name.trim());
+      else if (m.c === 'profileRen' && typeof m.name === 'string' && m.name.trim()) renameProfile(m.id, m.name.trim());
       else if (m.c === 'del' && m.id) { await dbDel(m.id); practiceSessions = practiceSessions.filter(s => s.id !== m.id); await renderAll(); toast('Test șters.'); }
     } else if (m.t === 'get') linkSend({ t: 'file', file: m.what === 'raw' ? rawFile() : backupFile() });
   }

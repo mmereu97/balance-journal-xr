@@ -30,6 +30,8 @@ I built it for a member of my family, so the interface is in Romanian. **All res
 
 **Limits of stability** (once a week): a top-down map shows the head as a red dot. For each of eight directions: 3 seconds centred, then a slow lean from the ankles, without lifting the feet, towards a 15 cm target circle, then back.
 
+**People:** one headset, several people. Every test belongs to the person selected at the top of the journal; results, charts, exports and clinical notes are kept apart. **Compare with** shows another person's averages next to the current ones, for example a healthy family member as a reference: under each sensory ratio, and as dashed lines on the evolution chart (real saved tests only, same foot position). Names stay in the headset browser.
+
 **Practice test:** a checkbox runs the whole test and shows the result without saving it, so a family member can try it without polluting the journal.
 
 **Safety stops:** a sway condition stops on its own if the head moves more than 20 cm from where it started, and a lean stops beyond 45 cm (a step). A stopped condition is recorded as such: that is information too.
