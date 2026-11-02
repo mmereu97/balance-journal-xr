@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jurnal de Echilibru</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: o singură coloană de lucru, ca o fișă de laborator pe hârtie milimetrică. */
+:root {
+  --bg: #eef2f0;
+  --paper: #fbfcfb;
+  --ink: #16211e;
+  --muted: #56655f;
+  --line: #d3ddd9;
+  --grid: #e2eae7;
+  --accent: #1d58b8;
+  --accent-ink: #ffffff;
+  --c-open: #1d58b8;
+  --c-closed: #b0502a;
+  --c-okn: #6a4ca0;
+  --c-foam-open: #17786c;
+  --c-foam-closed: #a3306f;
+  --bad: #b42318;
+  --bad-bg: #fbe9e7;
+  --good: #2c7a4b;
+  --warn-bg: #fdf3dc;
+  --warn-ink: #7a5310;
+  --focus-bg: #eaf0fb;
+  --font-ui: "Lexend", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1513; --paper: #151d1b; --ink: #e3ebe8; --muted: #93a39d; --line: #2a3632; --grid: #1e2926;
+    --accent: #7ea8ee; --accent-ink: #0b1220; --c-open: #7ea8ee; --c-closed: #e38c62; --c-okn: #b59de3;
+    --c-foam-open: #5cc4b6; --c-foam-closed: #e07ab8;
+    --bad: #f0857a; --bad-bg: #3a1c19; --good: #6cc191; --warn-bg: #33290f; --warn-ink: #f0cd84; --focus-bg: #18233a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1513; --paper: #151d1b; --ink: #e3ebe8; --muted: #93a39d; --line: #2a3632; --grid: #1e2926;
+  --accent: #7ea8ee; --accent-ink: #0b1220; --c-open: #7ea8ee; --c-closed: #e38c62; --c-okn: #b59de3;
+  --c-foam-open: #5cc4b6; --c-foam-closed: #e07ab8;
+  --bad: #f0857a; --bad-bg: #3a1c19; --good: #6cc191; --warn-bg: #33290f; --warn-ink: #f0cd84; --focus-bg: #18233a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 17px/1.55 var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: grid; gap: 20px; }
+header { display: grid; gap: 6px; padding-block: 8px 4px; }
+h1 { font-size: 2rem; line-height: 1.15; margin: 0; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 1.2rem; margin: 0; font-weight: 700; text-wrap: balance; }
+h3 { font-size: 0.8rem; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); width: fit-content; }
+.status::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+.status.ok::before { background: var(--good); }
+.status.no::before { background: var(--bad); }
+
+section.panel { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; }
+.field { display: grid; gap: 6px; min-width: 0; align-content: start; }
+label, .lbl { font-weight: 500; font-size: 0.95rem; }
+.hint { font-size: 0.85rem; color: var(--muted); }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 32px; }
+input[type="number"], select, textarea {
+  font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; width: 100%; min-height: 44px;
+}
+textarea { min-height: 72px; resize: vertical; }
+.scale { display: flex; align-items: center; gap: 12px; }
+.scale output { font-family: var(--font-num); font-size: 1.3rem; min-width: 2.2ch; text-align: right; font-variant-numeric: tabular-nums; }
+.checks { display: grid; gap: 10px; }
+.check { display: flex; gap: 12px; align-items: flex-start; font-weight: 400; cursor: pointer; }
+.check input { width: 24px; height: 24px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.check small { display: block; color: var(--muted); font-size: 0.85rem; }
+
+.seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.seg label { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; cursor: pointer; font-weight: 500; }
+.seg label small { display: block; font-weight: 400; color: var(--muted); font-size: 0.85rem; }
+.seg input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.seg label:has(input:checked) { border-color: var(--accent); background: var(--focus-bg); }
+
+.note { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 12px 14px; font-size: 0.92rem; display: grid; gap: 6px; }
+.note p { max-width: none; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+button, .btn {
+  font: 500 1rem var(--font-ui); border-radius: 8px; padding: 12px 18px; min-height: 48px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-size: 1.1rem; padding: 14px 26px; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.small { min-height: 36px; padding: 6px 12px; font-size: 0.88rem; }
+button.danger { color: var(--bad); }
+button.danger.armed { background: var(--bad-bg); border-color: var(--bad); }
+.btn input[type="file"] { display: none; }
+
+.two { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 680px) { .two { grid-template-columns: minmax(0, 1fr); } }
+canvas.plot { width: 100%; display: block; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); }
+canvas.square { aspect-ratio: 1 / 1; max-width: 100%; }
+#evo { aspect-ratio: 16 / 7; max-width: 100%; min-height: 220px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+.legend i.dash { background: none !important; border-top: 3px dashed var(--muted); height: 0; }
+.legend i.dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.table-scroll { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-weight: 500; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; text-align: right; }
+th.num { text-align: right; }
+th.key, td.key { background: var(--focus-bg); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+.pill { font-size: 0.78rem; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.pill.bad { color: var(--bad); border-color: var(--bad); background: var(--bad-bg); }
+
+.profile { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.prof { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; align-content: start; }
+.prof.key { border-color: var(--c-foam-closed); }
+.prof .v { font-family: var(--font-num); font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.prof .v small { font-size: 0.9rem; color: var(--muted); }
+.prof p { font-size: 0.85rem; color: var(--muted); }
+.prof .tag { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-foam-closed); font-weight: 500; }
+
+.empty { color: var(--muted); padding: 18px; border: 1px dashed var(--line); border-radius: 8px; display: grid; gap: 10px; justify-items: start; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 8px; font-size: 0.95rem; max-width: calc(100% - 32px); }
+footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Jurnal de Echilibru</h1>
+  <p class="lead">Teste scurte de echilibru cu Meta Quest 3. Casca măsoară mișcarea capului cât timp stai în picioare sau te apleci. Repetate regulat, arată dacă echilibrul se îmbunătățește, rămâne la fel sau regresează.</p>
+  <span class="status" id="xrStatus">Verific dacă există cască VR…</span>
+</header>
+
+<section class="panel" aria-labelledby="h-jurnal">
+  <div class="panel-head"><h2 id="h-jurnal">1. Cum te simți azi</h2><span class="hint">Se salvează împreună cu testul</span></div>
+  <div class="grid2">
+    <div class="field">
+      <label for="j-instab">Nesiguranță la mers azi</label>
+      <div class="scale"><input type="range" id="j-instab" min="0" max="10" value="2"><output id="o-instab">2</output></div>
+      <span class="hint">0 = deloc · 10 = nu pot merge fără sprijin</span>
+    </div>
+    <div class="field">
+      <label for="j-amet">Amețeală azi</label>
+      <div class="scale"><input type="range" id="j-amet" min="0" max="10" value="1"><output id="o-amet">1</output></div>
+      <span class="hint">0 = deloc · 10 = foarte puternică</span>
+    </div>
+    <div class="field">
+      <label for="j-somn">Ore de somn azi-noapte</label>
+      <input type="number" id="j-somn" min="0" max="16" step="0.5" value="7">
+    </div>
+    <div class="field">
+      <span class="lbl">Ce se mai întâmplă</span>
+      <div class="checks">
+        <label class="check" for="j-greu"><input type="checkbox" id="j-greu"><span>Zi mai grea decât de obicei<small>Mersul drept e mai dificil decât în mod obișnuit</small></span></label>
+        <label class="check" for="j-cap"><input type="checkbox" id="j-cap"><span>Am durere de cap azi</span></label>
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <label for="j-note">Observații</label>
+    <textarea id="j-note" placeholder="ex. stres, am stat mult la ecran, vreme schimbătoare, am mers pe întuneric…"></textarea>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="h-test">
+  <div class="panel-head"><h2 id="h-test">2. Testul</h2><span class="hint" id="durationHint"></span></div>
+
+  <div class="field">
+    <span class="lbl">Ce test faci azi</span>
+    <div class="seg" role="radiogroup">
+      <label for="k-sway"><input type="radio" name="kind" id="k-sway" value="sway" checked><span>Test de balans<small>Stai fără să te miști, pe podea și pe pernă. De 2–3 ori pe săptămână.</small></span></label>
+      <label for="k-los"><input type="radio" name="kind" id="k-los" value="los"><span>Limite de stabilitate<small>Te apleci în 8 direcții, fără să faci pas. O dată pe săptămână.</small></span></label>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="field">
+      <label for="s-stance">Poziția picioarelor</label>
+      <select id="s-stance">
+        <option value="departate">Picioare depărtate (la lățimea umerilor)</option>
+        <option value="apropiate">Picioare lipite (tălpile una lângă alta)</option>
+      </select>
+      <span class="hint">Recomand picioare depărtate: e mai sigur pe pernă. Păstreaz-o mereu la fel, fiindcă doar testele cu aceeași poziție se pot compara.</span>
+    </div>
+    <div class="field" id="durField">
+      <label for="s-dur">Durata fiecărei probe</label>
+      <select id="s-dur">
+        <option value="20">20 de secunde</option>
+        <option value="30" selected>30 de secunde</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field" id="probesField">
+    <span class="lbl">Probe (în ordinea în care se fac)</span>
+    <div class="checks">
+      <label class="check" for="c-open"><input type="checkbox" id="c-open" checked><span><span class="sw" style="background:var(--c-open)"></span>Podea · ochi deschiși<small>Proba de referință. Toate celelalte se raportează la ea.</small></span></label>
+      <label class="check" for="c-closed"><input type="checkbox" id="c-closed" checked><span><span class="sw" style="background:var(--c-closed)"></span>Podea · ochi închiși<small>Fără vedere; rămân picioarele și urechea internă.</small></span></label>
+      <label class="check" for="c-okn"><input type="checkbox" id="c-okn"><span><span class="sw" style="background:var(--c-okn)"></span>Podea · dungi în mișcare<small>Vederea transmite informații înșelătoare. Opțională, mai târziu.</small></span></label>
+      <label class="check" for="c-foam_open"><input type="checkbox" id="c-foam_open" checked><span><span class="sw" style="background:var(--c-foam-open)"></span>Pernă · ochi deschiși<small>Perna „șterge” informația din tălpi; rămân ochii și urechea internă.</small></span></label>
+      <label class="check" for="c-foam_closed"><input type="checkbox" id="c-foam_closed"><span><span class="sw" style="background:var(--c-foam-closed)"></span>Pernă · ochi închiși<small>Rămâne aproape doar urechea internă: echivalentul de acasă al condiției 5 de la posturografie. Bifeaz-o după 2–3 teste în care proba pe pernă cu ochii deschiși a mers fără probleme.</small></span></label>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="lbl">Siguranță, înainte de fiecare test</span>
+    <div class="checks">
+      <label class="check" for="k-wall"><input type="checkbox" id="k-wall"><span>Stă într-un colț sau cu spatele aproape de un perete</span></label>
+      <label class="check" for="k-person"><input type="checkbox" id="k-person"><span>Un însoțitor stă chiar lângă persoana testată, cu mâinile pregătite s-o sprijine</span></label>
+      <label class="check" for="k-ok"><input type="checkbox" id="k-ok"><span>Acum nu are amețeală puternică sau greață</span></label>
+    </div>
+  </div>
+
+  <div class="note" id="noteSway">
+    <p><b>Perna:</b> o pernă de spumă fermă, de 8–10 cm, care nu alunecă (de ex. o pernă de echilibru sau o bucată de spumă de saltea pe un covoraș antiderapant). Pusă în colț, lângă perete. Se urcă și se coboară de pe ea doar cu sprijinul însoțitorului.</p>
+    <p><b>În cască:</b> apasă <b>trăgaciul</b> (sau ciupește cu degetele) ca să începi proba afișată. Urmează 3 bipuri scurte, apoi un bip lung = <b>start</b> (la probele cu ochii închiși: închide ochii acum). Două bipuri = <b>gata</b>. Butonul <b>grip</b> oprește imediat tot. Dacă se mișcă mai mult de 20 cm, proba se oprește singură și se notează. Și asta e o informație utilă.</p>
+  </div>
+  <div class="note" id="noteLos" hidden>
+    <p><b>Cum se face:</b> pe panou apare o hartă văzută de sus, cu un punct roșu care e capul persoanei testate. Pentru fiecare din cele 8 direcții: 3 secunde drept la mijloc, apoi la bipul lung se apleacă încet spre direcția arătată, din glezne, cu corpul drept, <b>fără să ridice tălpile și fără pas</b>, până la cercul exterior (15 cm) sau cât poate în siguranță. Ține poziția, iar la cele două bipuri revine la mijloc.</p>
+    <p>Însoțitorul stă <b>pe partea spre care se apleacă</b> persoana testată.</p>
+  </div>
+  <div class="note" id="clinNote" hidden><p><b>Din evaluarea clinică:</b> <span id="clinNoteText"></span></p></div>
+
+  <div class="actions">
+    <button class="primary" id="btnStart" disabled>Pornește testul în cască</button>
+    <button id="btnSim">Simulare (fără cască)</button>
+    <span class="hint" id="startHint"></span>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="h-last">
+  <div class="panel-head"><h2 id="h-last">3. Ultimul test de balans</h2><span class="hint" id="lastDate"></span></div>
+  <div id="lastEmpty" class="empty">
+    <p>Aici apar rezultatele după primul test: profilul senzorial, traseul capului văzut de sus și cifrele fiecărei probe.</p>
+    <p class="hint">Vrei să vezi cum arată? Apasă „Simulare”. Simulările sunt marcate și le poți șterge.</p>
+  </div>
+  <div id="lastBody" hidden style="display:grid;gap:20px">
+    <div class="field" style="gap:10px">
+      <h3>Profil senzorial: de câte ori crește oscilația față de proba de referință</h3>
+      <div class="profile" id="profile"></div>
+    </div>
+    <div class="two">
+      <div class="field">
+        <canvas id="trace" class="plot square" width="680" height="680" aria-label="Traseul capului văzut de sus"></canvas>
+        <div class="legend" id="traceLegend"></div>
+      </div>
+      <div class="field" style="gap:14px">
+        <div class="table-scroll"><table id="lastTable"></table></div>
+        <p class="hint">Coloana evidențiată e oscilația laterală (stânga–dreapta).</p>
+        <div class="actions"><button class="small" id="btnRaw">Descarcă datele brute (CSV)</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="h-los">
+  <div class="panel-head"><h2 id="h-los">4. Limite de stabilitate</h2><span class="hint" id="losDate"></span></div>
+  <div id="losEmpty" class="empty"><p>După primul test de aplecări apare aici forma limitelor: cât de departe se poate apleca în fiecare direcție, comparat cu testul anterior.</p></div>
+  <div id="losBody" hidden class="two">
+    <div class="field">
+      <canvas id="losPlot" class="plot square" width="680" height="680" aria-label="Limitele de stabilitate văzute de sus"></canvas>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Ultimul test</span><span><i class="dash"></i>Testul anterior</span><span><i style="background:var(--grid);height:8px"></i>Cercul-țintă, 15 cm</span></div>
+    </div>
+    <div class="field" style="gap:14px">
+      <div class="profile" id="losSummary"></div>
+      <div class="table-scroll"><table id="losTable"></table></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="h-evo">
+  <div class="panel-head"><h2 id="h-evo">5. Evoluție</h2><span class="hint" id="evoHint"></span></div>
+  <div id="evoEmpty" class="empty"><p>Graficul apare după cel puțin un test de balans. Cu cât sunt mai multe teste, cu atât se văd mai clar tiparele.</p></div>
+  <div id="evoBody" hidden style="display:grid;gap:14px">
+    <div class="field" style="max-width:420px">
+      <label for="evoMetric">Ce arată graficul</label>
+      <select id="evoMetric">
+        <option value="velocity_cms">Viteza medie de oscilație (cm/s)</option>
+        <option value="rmsML_cm">Oscilație laterală, stânga–dreapta (cm)</option>
+        <option value="rmsAP_cm">Oscilație față–spate (cm)</option>
+        <option value="ratio">Profil senzorial (rapoarte)</option>
+      </select>
+    </div>
+    <canvas id="evo" class="plot" width="1280" height="560" aria-label="Evoluția în timp"></canvas>
+    <div class="legend" id="evoLegend"></div>
+    <p class="hint" id="evoExplain"></p>
+    <div class="table-scroll"><table id="histTable"></table></div>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="h-data">
+  <div class="panel-head"><h2 id="h-data">6. Date și copii de siguranță</h2></div>
+  <p>Toate datele stau doar în browserul de pe cască. Dacă golești datele browserului, se pierd. Fă o copie de siguranță din când în când și pune-o pe calculator.</p>
+  <div class="field">
+    <label for="clin">Notițe din evaluarea clinică (opțional)</label>
+    <textarea id="clin" placeholder="ex. ce a arătat posturografia, ce direcție sau ce probă e de urmărit"></textarea>
+    <span class="hint">Rămân doar pe acest dispozitiv, ca toate datele, intră în copia de siguranță și apar la instrucțiunile testului.</span>
+  </div>
+  <div class="actions">
+    <button id="btnCsv">Export pentru medic (CSV)</button>
+    <button id="btnJson">Copie de siguranță completă (JSON)</button>
+    <label class="btn" for="fileImport" tabindex="0">Importă copia de siguranță<input type="file" id="fileImport" accept=".json,application/json"></label>
+  </div>
+</section>
+
+<footer>
+  <p>Instrument personal de monitorizare, nu dispozitiv medical. Măsoară mișcarea capului, care urmărește îndeaproape oscilația corpului, dar nu e aceeași măsurătoare ca posturografia pe platformă din clinică. Valorile nu se compară direct cu cele din clinică; contează tendința în timp.</p>
+</footer>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module">
+let THREE = null; // se încarcă doar când pornește testul în cască
+
+// ===================== METRICS-START (funcții pure, testabile) =====================
+function forwardFromQuat(qx, qy, qz, qw) {
+  let fx = -2 * (qx * qz + qw * qy);
+  let fz = -(1 - 2 * (qx * qx + qy * qy));
+  const n = Math.hypot(fx, fz);
+  if (n < 1e-3) return [0, -1];
+  return [fx / n, fz / n];
+}
+// samples: { t:[s], x:[m], z:[m] } ; heading: [fx, fz] direcția privirii la start (orizontal)
+function computeMetrics(samples, heading, skipSec = 2) {
+  const n = samples.t.length;
+  if (n < 10) return null;
+  let i0 = 0;
+  while (i0 < n && samples.t[i0] - samples.t[0] < skipSec) i0++;
+  if (n - i0 < 20) { i0 = 0; }
+  const xs = [], zs = [], ts = [];
+  for (let i = i0; i < n; i++) {
+    let sx = 0, sz = 0, c = 0;
+    for (let k = -2; k <= 2; k++) {
+      const j = i + k;
+      if (j >= i0 && j < n) { sx += samples.x[j]; sz += samples.z[j]; c++; }
+    }
+    xs.push(sx / c); zs.push(sz / c); ts.push(samples.t[i]);
+  }
+  const m = xs.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / m;
+  const mz = zs.reduce((a, b) => a + b, 0) / m;
+  const [fx, fz] = heading;
+  const rx = -fz, rz = fx;
+  const ap = new Array(m), ml = new Array(m);
+  for (let i = 0; i < m; i++) {
+    const dx = xs[i] - mx, dz = zs[i] - mz;
+    ap[i] = dx * fx + dz * fz;
+    ml[i] = dx * rx + dz * rz;
+  }
+  let path = 0;
+  for (let i = 1; i < m; i++) path += Math.hypot(ap[i] - ap[i - 1], ml[i] - ml[i - 1]);
+  const dur = ts[m - 1] - ts[0];
+  let vA = 0, vM = 0, cAM = 0, minA = Infinity, maxA = -Infinity, minM = Infinity, maxM = -Infinity;
+  for (let i = 0; i < m; i++) {
+    vA += ap[i] * ap[i]; vM += ml[i] * ml[i]; cAM += ap[i] * ml[i];
+    if (ap[i] < minA) minA = ap[i]; if (ap[i] > maxA) maxA = ap[i];
+    if (ml[i] < minM) minM = ml[i]; if (ml[i] > maxM) maxM = ml[i];
+  }
+  vA /= m; vM /= m; cAM /= m;
+  const det = Math.max(0, vA * vM - cAM * cAM);
+  const area = Math.PI * 5.991 * Math.sqrt(det);
+  const r2 = v => Math.round(v * 100) / 100;
+  return {
+    duration_s: r2(dur),
+    path_cm: r2(path * 100),
+    velocity_cms: dur > 0 ? r2(path * 100 / dur) : 0,
+    area95_cm2: r2(area * 1e4),
+    rmsAP_cm: r2(Math.sqrt(vA) * 100),
+    rmsML_cm: r2(Math.sqrt(vM) * 100),
+    rangeAP_cm: r2((maxA - minA) * 100),
+    rangeML_cm: r2((maxM - minM) * 100),
+    trace: { ap: ap.map(v => Math.round(v * 10000) / 100), ml: ml.map(v => Math.round(v * 10000) / 100) }   // cm, la 0,1 mm
+  };
+}
+// rapoarte față de proba de referință (podea, ochi deschiși); valoare mare = oscilează mult mai mult
+function sensoryProfile(trials) {
+  const get = c => trials.find(x => x.cond === c);
+  const base = get('open');
+  const bv = base && base.metrics && !base.stopped ? base.metrics.velocity_cms : null;
+  const one = c => {
+    const t = get(c);
+    if (!t) return null;
+    if (t.stopped) return { stopped: true };
+    if (!bv || !t.metrics) return null;
+    return { value: Math.round(t.metrics.velocity_cms / bv * 100) / 100 };
+  };
+  return { romberg: one('closed'), foam: one('foam_open'), vestibular: one('foam_closed'), okn: one('okn') };
+}
+// limite de stabilitate: aria poligonului cu 8 raze la 45°, și asimetriile
+function losSummary(dirs) {
+  const r = a => { const d = dirs.find(x => x.angle === a); return d ? d.max_cm : 0; };
+  let area = 0;
+  for (let i = 0; i < 8; i++) area += 0.5 * r(i * 45) * r(((i + 1) % 8) * 45) * Math.sin(Math.PI / 4);
+  const asym = (a, b) => (a + b) > 0 ? Math.round((a - b) / Math.max(a, b) * 100) : 0;
+  return {
+    area_cm2: Math.round(area * 10) / 10,
+    left: r(270), right: r(90), front: r(0), back: r(180),
+    asymLR: asym(r(270), r(90)),   // pozitiv = merge mai departe spre stânga decât spre dreapta
+    asymFB: asym(r(0), r(180))
+  };
+}
+// ===================== METRICS-END =====================
+
+const COND = {
+  open:        { label: 'Podea · ochi deschiși', short: 'Podea, desch.', color: '--c-open',        eyes: true,
+                 panel: ['Podea · ochii deschiși', 'Privește punctul din mijloc.', 'Brațele pe lângă corp, fără mișcare.'] },
+  closed:      { label: 'Podea · ochi închiși',  short: 'Podea, închiși', color: '--c-closed',     eyes: false,
+                 panel: ['Podea · ochii închiși', 'La bipul LUNG, închide ochii.', 'Deschide-i la cele DOUĂ bipuri.'] },
+  okn:         { label: 'Podea · dungi',         short: 'Dungi',          color: '--c-okn',        eyes: true,
+                 panel: ['Podea · dungi în mișcare', 'Privește înainte, nu urmări dungile.', 'Grip = oprire imediată.'] },
+  foam_open:   { label: 'Pernă · ochi deschiși', short: 'Pernă, desch.',  color: '--c-foam-open',  eyes: true,
+                 panel: ['Pernă · ochii deschiși', 'Urcă pe pernă cu sprijinul însoțitorului.', 'Apoi privește punctul din mijloc.'] },
+  foam_closed: { label: 'Pernă · ochi închiși',  short: 'Pernă, închiși', color: '--c-foam-closed', eyes: false,
+                 panel: ['Pernă · ochii închiși', 'Rămâi pe pernă. La bipul LUNG închide ochii.', 'Deschide-i la cele DOUĂ bipuri.'] }
+};
+const ORDER = ['open', 'closed', 'okn', 'foam_open', 'foam_closed'];
+const MAX_DISPLACEMENT = 0.20;  // m, probe de balans
+const LOS_MAX_DISPLACEMENT = 0.45; // m, dacă face pas
+const LOS_TARGET = 0.15;        // m
+const LOS_LEAN = 6, LOS_CENTER = 3; // s
+const LOS_DIRS = [
+  { angle: 0, name: 'înainte' }, { angle: 45, name: 'înainte-dreapta' }, { angle: 90, name: 'dreapta' },
+  { angle: 135, name: 'înapoi-dreapta' }, { angle: 180, name: 'înapoi' }, { angle: 225, name: 'înapoi-stânga' },
+  { angle: 270, name: 'stânga' }, { angle: 315, name: 'înainte-stânga' }
+];
+
+const $ = id => document.getElementById(id);
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const kindOf = s => s.kind || 'sway';
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3800);
+}
+
+// ---------- stocare (IndexedDB, cu rezervă în memorie)
+const mem = new Map();
+let dbPromise = null;
+function openDB() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise(resolve => {
+    try {
+      const r = indexedDB.open('jurnal-echilibru', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('sessions', { keyPath: 'id' });
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => resolve(null);
+    } catch (e) { resolve(null); }
+  });
+  return dbPromise;
+}
+async function dbAll() {
+  const db = await openDB();
+  if (!db) return [...mem.values()];
+  return new Promise(resolve => {
+    try {
+      const q = db.transaction('sessions').objectStore('sessions').getAll();
+      q.onsuccess = () => resolve(q.result || []);
+      q.onerror = () => resolve([...mem.values()]);
+    } catch (e) { resolve([...mem.values()]); }
+  });
+}
+async function dbPut(s) {
+  mem.set(s.id, s);
+  const db = await openDB();
+  if (!db) return;
+  await new Promise(resolve => {
+    try { const tx = db.transaction('sessions', 'readwrite'); tx.objectStore('sessions').put(s); tx.oncomplete = resolve; tx.onerror = resolve; }
+    catch (e) { resolve(); }
+  });
+}
+async function dbDel(id) {
+  mem.delete(id);
+  const db = await openDB();
+  if (!db) return;
+  await new Promise(resolve => {
+    try { const tx = db.transaction('sessions', 'readwrite'); tx.objectStore('sessions').delete(id); tx.oncomplete = resolve; tx.onerror = resolve; }
+    catch (e) { resolve(); }
+  });
+}
+
+// ---------- preferințe
+function loadPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem('je-prefs2') || '{}');
+    if (p.stance) $('s-stance').value = p.stance;
+    if (p.dur) $('s-dur').value = p.dur;
+    if (p.metric) $('evoMetric').value = p.metric;
+    if (p.conds) ORDER.forEach(c => { $('c-' + c).checked = p.conds.includes(c); });
+  } catch (e) {}
+}
+function savePrefs() {
+  try { localStorage.setItem('je-prefs2', JSON.stringify({ stance: $('s-stance').value, dur: $('s-dur').value, metric: $('evoMetric').value, conds: selectedConds() })); } catch (e) {}
+}
+
+// ---------- formular
+function bindScale(inp, out) { const f = () => { $(out).textContent = $(inp).value; }; $(inp).addEventListener('input', f); f(); }
+bindScale('j-instab', 'o-instab'); bindScale('j-amet', 'o-amet');
+
+function readJournal() {
+  return {
+    instabilitate: +$('j-instab').value,
+    ameteala: +$('j-amet').value,
+    somn_ore: $('j-somn').value === '' ? null : +$('j-somn').value,
+    perioada_grea: $('j-greu').checked,
+    durere_cap: $('j-cap').checked,
+    observatii: $('j-note').value.trim()
+  };
+}
+const testKind = () => $('k-los').checked ? 'los' : 'sway';
+function selectedConds() { return ORDER.filter(c => $('c-' + c).checked); }
+function settings() { return { stance: $('s-stance').value, duration: +$('s-dur').value, conds: selectedConds() }; }
+
+let xrSupported = false, xrMode = null, running = false;
+function updateStartState() {
+  const kind = testKind();
+  $('probesField').hidden = kind === 'los';
+  $('durField').hidden = kind === 'los';
+  $('noteSway').hidden = kind === 'los';
+  $('noteLos').hidden = kind !== 'los';
+  const conds = selectedConds();
+  const total = kind === 'los' ? 8 * (LOS_LEAN + LOS_CENTER) + 15 : conds.length * (+$('s-dur').value + 12);
+  $('durationHint').textContent = (kind === 'los' || conds.length) ? `aprox. ${Math.ceil(total / 60)} min în total` : '';
+  const safe = $('k-wall').checked && $('k-person').checked && $('k-ok').checked;
+  const okConds = kind === 'los' || conds.length > 0;
+  let hint = '';
+  if (!xrSupported) hint = 'Butonul devine activ când deschizi pagina pe Quest.';
+  else if (!okConds) hint = 'Alege cel puțin o probă.';
+  else if (!safe) hint = 'Bifează cele trei verificări de siguranță.';
+  else if (kind === 'sway' && !conds.includes('open')) hint = 'Fără proba de referință nu se pot calcula rapoartele.';
+  $('btnStart').disabled = !(xrSupported && okConds && safe) || running;
+  $('btnSim').disabled = !okConds || running;
+  $('startHint').textContent = hint;
+  savePrefs();
+}
+['c-open', 'c-closed', 'c-okn', 'c-foam_open', 'c-foam_closed', 'k-wall', 'k-person', 'k-ok', 's-dur', 's-stance', 'k-sway', 'k-los']
+  .forEach(id => $(id).addEventListener('change', () => { updateStartState(); if (id === 's-stance') renderEvo(); }));
+$('evoMetric').addEventListener('change', () => { savePrefs(); renderEvo(); });
+
+async function detectXR() {
+  const st = $('xrStatus');
+  if (!window.isSecureContext) { st.textContent = 'Pagina trebuie deschisă printr-o adresă https://'; st.className = 'status no'; return; }
+  if (!navigator.xr) { st.textContent = 'Fără cască VR aici. Deschide pagina în browserul de pe Quest pentru test.'; st.className = 'status no'; return; }
+  try {
+    if (await navigator.xr.isSessionSupported('immersive-ar')) { xrSupported = true; xrMode = 'immersive-ar'; }
+    else if (await navigator.xr.isSessionSupported('immersive-vr')) { xrSupported = true; xrMode = 'immersive-vr'; }
+  } catch (e) {}
+  if (xrSupported) {
+    st.textContent = xrMode === 'immersive-ar' ? 'Cască detectată, cu vedere a camerei reale (passthrough)' : 'Cască VR detectată';
+    st.className = 'status ok';
+  } else { st.textContent = 'Browserul nu poate porni o sesiune VR.'; st.className = 'status no'; }
+  updateStartState();
+}
+
+// ---------- audio
+let actx = null;
+function ensureAudio() {
+  try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {}
+}
+function beep(freq = 880, dur = 0.12, when = 0, vol = 0.35) {
+  if (!actx) return;
+  try {
+    const t0 = actx.currentTime + when;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+    g.gain.setValueAtTime(vol, t0 + dur - 0.03); g.gain.linearRampToValueAtTime(0, t0 + dur);
+    o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+  } catch (e) {}
+}
+const sndTick = () => beep(660, 0.12);
+const sndStart = () => beep(990, 0.6);
+const sndEnd = () => { beep(990, 0.15); beep(990, 0.15, 0.25); };
+const sndStop = () => { beep(330, 0.35); beep(260, 0.45, 0.4); };
+
+// ---------- three.js / WebXR
+let renderer = null, scene, camera, panel, panelCtx, panelTex, dot, stripes, floorGrid;
+const run = {
+  kind: 'sway', session: null, conds: [], idx: 0, phase: 'idle', trials: [], rec: null,
+  countEnd: 0, lastTick: -1, dur: 30, journal: null, settings: null, lastPose: null, lastT: 0, doneAt: 0,
+  los: null, frameNo: 0
+};
+
+function initThree() {
+  if (renderer) return;
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(64, 64);
+  renderer.xr.enabled = true;
+  renderer.xr.setReferenceSpaceType('local');
+  renderer.setClearColor(0x000000, 0);
+  renderer.domElement.style.display = 'none';
+  document.body.appendChild(renderer.domElement);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(70, 1, 0.05, 50);
+
+  const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
+  panelCtx = cv.getContext('2d');
+  panelTex = new THREE.CanvasTexture(cv); panelTex.colorSpace = THREE.SRGBColorSpace;
+  panel = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.55), new THREE.MeshBasicMaterial({ map: panelTex, transparent: true }));
+  scene.add(panel);
+
+  dot = new THREE.Mesh(new THREE.CircleGeometry(0.018, 32), new THREE.MeshBasicMaterial({ color: 0xff5a36 }));
+  scene.add(dot); dot.visible = false;
+
+  // dungi verticale doar în partea de sus a câmpului vizual; podeaua reală rămâne vizibilă
+  const sc = document.createElement('canvas'); sc.width = 1024; sc.height = 8;
+  const g = sc.getContext('2d');
+  for (let i = 0; i < 32; i++) { g.fillStyle = i % 2 ? '#1a1a1a' : '#e8e8e8'; g.fillRect(i * 32, 0, 32, 8); }
+  const stTex = new THREE.CanvasTexture(sc); stTex.colorSpace = THREE.SRGBColorSpace;
+  stripes = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 1.7, 96, 1, true), new THREE.MeshBasicMaterial({ map: stTex, side: THREE.BackSide }));
+  stripes.position.y = 0.25; stripes.visible = false;
+  scene.add(stripes);
+
+  floorGrid = new THREE.GridHelper(8, 16, 0x557766, 0x334440);
+  floorGrid.position.y = -1.6; floorGrid.visible = false;
+  scene.add(floorGrid);
+}
+
+function panelBg() {
+  const c = panelCtx, W = 1024, H = 512, r = 36;
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = 'rgba(14,22,20,0.92)';
+  c.beginPath(); c.moveTo(r, 0); c.arcTo(W, 0, W, H, r); c.arcTo(W, H, 0, H, r); c.arcTo(0, H, 0, 0, r); c.arcTo(0, 0, W, 0, r); c.fill();
+}
+function drawPanel(title, lines = [], big = '') {
+  const c = panelCtx, W = 1024;
+  panelBg();
+  c.fillStyle = '#ffffff'; c.textAlign = 'center';
+  c.font = '700 60px system-ui, sans-serif'; c.fillText(title, W / 2, 105);
+  c.font = '400 40px system-ui, sans-serif'; c.fillStyle = '#d6e2de';
+  lines.forEach((l, i) => c.fillText(l, W / 2, 185 + i * 56));
+  if (big) { c.font = '700 120px system-ui, sans-serif'; c.fillStyle = '#ffd38a'; c.fillText(big, W / 2, 470); }
+  panelTex.needsUpdate = true;
+}
+// hartă văzută de sus pentru limitele de stabilitate; cur = {ap, ml} în cm
+function drawLosPanel(title, lines, cur, activeIdx, maxes) {
+  const c = panelCtx;
+  panelBg();
+  c.textAlign = 'left'; c.fillStyle = '#ffffff';
+  c.font = '700 50px system-ui, sans-serif'; c.fillText(title, 44, 95);
+  c.font = '400 34px system-ui, sans-serif'; c.fillStyle = '#d6e2de';
+  lines.forEach((l, i) => c.fillText(l, 44, 160 + i * 48));
+  const cx = 770, cy = 256, R = 200, k = R / (LOS_TARGET * 100);
+  c.strokeStyle = '#4c6a61'; c.lineWidth = 2;
+  [1 / 3, 2 / 3].forEach(f => { c.beginPath(); c.arc(cx, cy, R * f, 0, Math.PI * 2); c.stroke(); });
+  c.strokeStyle = '#9fc4b9'; c.lineWidth = 5; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
+  LOS_DIRS.forEach((d, i) => {
+    const a = d.angle * Math.PI / 180, ex = cx + Math.sin(a) * R, ey = cy - Math.cos(a) * R;
+    c.strokeStyle = i === activeIdx ? '#ffd38a' : '#3b524b'; c.lineWidth = i === activeIdx ? 12 : 3;
+    c.beginPath(); c.moveTo(cx, cy); c.lineTo(ex, ey); c.stroke();
+    if (i === activeIdx) { c.fillStyle = '#ffd38a'; c.beginPath(); c.arc(ex, ey, 18, 0, Math.PI * 2); c.fill(); }
+    if (maxes && maxes[i] != null) {
+      const rr = Math.min(maxes[i] * k, R * 1.25);
+      c.fillStyle = '#7ea8ee'; c.beginPath(); c.arc(cx + Math.sin(a) * rr, cy - Math.cos(a) * rr, 9, 0, Math.PI * 2); c.fill();
+    }
+  });
+  c.fillStyle = '#d6e2de'; c.font = '500 26px system-ui, sans-serif'; c.textAlign = 'center';
+  c.fillText('ÎNAINTE', cx, cy - R - 14);
+  if (cur) {
+    let x = cur.ml * k, y = -cur.ap * k;
+    const L = Math.hypot(x, y), lim = R * 1.3;
+    if (L > lim) { x *= lim / L; y *= lim / L; }
+    c.fillStyle = '#ff5a36'; c.beginPath(); c.arc(cx + x, cy + y, 17, 0, Math.PI * 2); c.fill();
+  }
+  panelTex.needsUpdate = true;
+}
+
+function placePanel(tr) {
+  const p = tr.position, q = tr.orientation;
+  const [fx, fz] = forwardFromQuat(q.x, q.y, q.z, q.w);
+  panel.position.set(p.x + fx * 1.4, p.y - 0.05, p.z + fz * 1.4);
+  panel.lookAt(p.x, p.y - 0.05, p.z);
+  dot.position.set(p.x + fx * 1.38, p.y + 0.06, p.z + fz * 1.38);
+  dot.lookAt(p.x, p.y + 0.06, p.z);
+  stripes.position.x = p.x; stripes.position.z = p.z;
+}
+
+// ---------- flux: test de balans
+function showReady(msg) {
+  const c = run.conds[run.idx], info = COND[c];
+  run.phase = 'ready';
+  stripes.visible = false; dot.visible = false; panel.visible = true;
+  if (run.lastPose) placePanel(run.lastPose);
+  drawPanel(msg || `Proba ${run.idx + 1} din ${run.conds.length}`, [info.panel[0], info.panel[1], info.panel[2], 'Apasă trăgaciul (sau ciupește) când ești gata.']);
+}
+function startCountdown(t) {
+  run.phase = 'countdown'; run.countEnd = t + 3; run.lastTick = -1;
+  if (run.conds[run.idx] === 'okn') stripes.visible = true;
+}
+function startRecording(t, tr) {
+  const q = tr.orientation;
+  run.rec = { t0: t, start: [tr.position.x, tr.position.z], heading: forwardFromQuat(q.x, q.y, q.z, q.w), s: { t: [], x: [], y: [], z: [], qx: [], qy: [], qz: [], qw: [] } };
+  run.phase = 'record';
+  sndStart();
+  const c = run.conds[run.idx];
+  if (c === 'okn') { panel.visible = false; dot.visible = false; }
+  else if (COND[c].eyes) { dot.visible = true; drawPanel('', [], ''); }
+  else { dot.visible = false; drawPanel('Ochii închiși', ['Stai fără să te miști.', 'Deschide ochii la cele două bipuri.']); }
+}
+function pushSample(t, tr) {
+  const s = run.rec.s, p = tr.position, q = tr.orientation;
+  const r4 = v => Math.round(v * 10000) / 10000;
+  s.t.push(Math.round((t - run.rec.t0) * 1000) / 1000);
+  s.x.push(r4(p.x)); s.y.push(r4(p.y)); s.z.push(r4(p.z));
+  s.qx.push(r4(q.x)); s.qy.push(r4(q.y)); s.qz.push(r4(q.z)); s.qw.push(r4(q.w));
+}
+function finishTrial(stopped, reason) {
+  const c = run.conds[run.idx], rec = run.rec;
+  const metrics = rec ? computeMetrics(rec.s, rec.heading) : null;
+  run.trials.push({ cond: c, stopped: !!stopped, reason: reason || '', heading: rec ? rec.heading : null, samples: rec ? rec.s : null, metrics });
+  run.rec = null;
+  stripes.visible = false; dot.visible = false; panel.visible = true;
+}
+function afterTrial(msg) {
+  run.idx++;
+  if (run.idx < run.conds.length) showReady(msg);
+  else {
+    run.phase = 'done'; run.doneAt = run.lastT + 3;
+    drawPanel('Test terminat', ['Gata! Coboară de pe pernă cu sprijinul însoțitorului.', 'Rezultatele apar pe pagină.']);
+  }
+}
+function swayFrame(t, tr) {
+  if (run.phase === 'countdown') {
+    const left = Math.ceil(run.countEnd - t);
+    if (left !== run.lastTick && left > 0) {
+      run.lastTick = left; sndTick();
+      if (run.conds[run.idx] !== 'okn') { drawPanel('Pregătește-te', [COND[run.conds[run.idx]].panel[0]], String(left)); placePanel(tr); }
+    }
+    if (t >= run.countEnd) startRecording(t, tr);
+  } else if (run.phase === 'record') {
+    pushSample(t, tr);
+    const el = t - run.rec.t0;
+    const d = Math.hypot(tr.position.x - run.rec.start[0], tr.position.z - run.rec.start[1]);
+    if (d > MAX_DISPLACEMENT && el > 0.5) {
+      sndStop();
+      finishTrial(true, `deplasare peste 20 cm la ${el.toFixed(1)} s`);
+      afterTrial('Proba s-a oprit: s-a mișcat mult. Se notează.');
+      return;
+    }
+    if (COND[run.conds[run.idx]].eyes && run.conds[run.idx] !== 'okn') {
+      const sec = Math.ceil(run.dur - el);
+      if (sec !== run.lastTick) { run.lastTick = sec; drawPanel('', [], String(Math.max(sec, 0))); }
+    }
+    if (el >= run.dur) { sndEnd(); finishTrial(false, ''); afterTrial('Gata cu proba asta.'); }
+  } else if (run.phase === 'done' && t >= run.doneAt) endRun();
+}
+
+// ---------- flux: limite de stabilitate
+function losRel(tr) {
+  const L = run.los;
+  const dx = tr.position.x - L.center[0], dz = tr.position.z - L.center[1];
+  const [fx, fz] = L.heading;
+  return { ap: (dx * fx + dz * fz) * 100, ml: (dx * -fz + dz * fx) * 100 };
+}
+function losReady() {
+  run.phase = 'ready';
+  panel.visible = true; dot.visible = false; stripes.visible = false;
+  if (run.lastPose) placePanel(run.lastPose);
+  drawLosPanel('Limite de stabilitate', ['Punctul roșu e capul tău.', 'La bipul lung apleacă-te spre', 'direcția galbenă, fără pas.', '', 'Apasă trăgaciul când ești gata.'], null, -1, null);
+}
+function losStartCenter(t) {
+  run.phase = 'los_center'; run.los.phaseEnd = t + LOS_CENTER; run.los.buf = []; run.lastTick = -1;
+}
+function losFrame(t, tr) {
+  const L = run.los;
+  run.frameNo++;
+  if (run.phase === 'los_center') {
+    L.buf.push([tr.position.x, tr.position.z]);
+    const left = Math.ceil(L.phaseEnd - t);
+    if (left !== run.lastTick && left > 0) { run.lastTick = left; sndTick(); }
+    if (run.frameNo % 2 === 0) {
+      const d = LOS_DIRS[L.idx];
+      drawLosPanel(`Drept, la mijloc · ${left}`, [`Urmează: ${d.name}`, `(${L.idx + 1} din 8)`], L.center ? losRel(tr) : { ap: 0, ml: 0 }, L.idx, L.maxes);
+    }
+    if (t >= L.phaseEnd) {
+      const b = L.buf.slice(-Math.min(L.buf.length, 90));
+      L.center = [b.reduce((a, p) => a + p[0], 0) / b.length, b.reduce((a, p) => a + p[1], 0) / b.length];
+      if (!L.heading) { const q = tr.orientation; L.heading = forwardFromQuat(q.x, q.y, q.z, q.w); }
+      run.phase = 'los_lean'; L.phaseEnd = t + LOS_LEAN; L.best = 0; L.win = [];
+      sndStart();
+    }
+  } else if (run.phase === 'los_lean') {
+    const rel = losRel(tr);
+    const d = LOS_DIRS[L.idx], a = d.angle * Math.PI / 180;
+    const proj = rel.ap * Math.cos(a) + rel.ml * Math.sin(a);
+    L.win.push(proj); if (L.win.length > 5) L.win.shift();
+    const sm = L.win.reduce((x, y) => x + y, 0) / L.win.length;
+    if (sm > L.best) L.best = sm;
+    L.trace.t.push(Math.round((t - L.t0) * 100) / 100); L.trace.ap.push(Math.round(rel.ap * 10) / 10); L.trace.ml.push(Math.round(rel.ml * 10) / 10); L.trace.dir.push(L.idx);
+    if (Math.hypot(rel.ap, rel.ml) > LOS_MAX_DISPLACEMENT * 100) {
+      sndStop();
+      L.results.push({ angle: d.angle, name: d.name, max_cm: Math.round(L.best * 10) / 10, stopped: true });
+      run.phase = 'done'; run.doneAt = t + 3;
+      drawLosPanel('Oprit', ['S-a făcut un pas sau o', 'aplecare foarte mare.', 'Se salvează ce s-a măsurat.'], null, -1, L.maxes);
+      return;
+    }
+    if (run.frameNo % 2 === 0) drawLosPanel(`Apleacă-te: ${d.name}`, ['Din glezne, corpul drept.', 'Fără pas. Până la cerc', 'sau cât poți în siguranță.'], rel, L.idx, L.maxes);
+    if (t >= L.phaseEnd) {
+      sndEnd();
+      const v = Math.max(0, Math.round(L.best * 10) / 10);
+      L.results.push({ angle: d.angle, name: d.name, max_cm: v, stopped: false });
+      L.maxes[L.idx] = v;
+      L.idx++;
+      if (L.idx < LOS_DIRS.length) losStartCenter(t);
+      else {
+        run.phase = 'done'; run.doneAt = t + 3;
+        drawLosPanel('Test terminat', ['Mulțumesc!', 'Rezultatele apar pe pagină.'], null, -1, L.maxes);
+      }
+    }
+  } else if (run.phase === 'done' && t >= run.doneAt) endRun();
+}
+
+// ---------- evenimente XR comune
+function onSelect() {
+  if (run.phase !== 'ready') return;
+  if (run.kind === 'los') { run.los.t0 = run.lastT; losStartCenter(run.lastT); }
+  else startCountdown(run.lastT);
+}
+function onSqueeze() {
+  if (!running) return;
+  if (run.kind === 'sway' && run.phase === 'record') finishTrial(true, 'oprit manual');
+  run.phase = 'aborted';
+  sndStop();
+  endRun('Test oprit cu butonul grip.');
+}
+function onFrame(t, tr) {
+  run.lastPose = tr; run.lastT = t;
+  if (run.kind === 'los') losFrame(t, tr); else swayFrame(t, tr);
+}
+
+async function startXR() {
+  ensureAudio();
+  if (!THREE) {
+    try { THREE = await import('three'); }
+    catch (e) { toast('Nu am putut încărca motorul 3D. Verifică conexiunea la internet.'); return; }
+  }
+  initThree();
+  const s = settings();
+  run.kind = testKind();
+  run.conds = s.conds; run.idx = 0; run.trials = []; run.dur = s.duration;
+  run.journal = readJournal(); run.settings = s; run.phase = 'idle'; run.lastPose = null; run.frameNo = 0;
+  run.los = run.kind === 'los' ? { idx: 0, center: null, heading: null, results: [], maxes: new Array(8).fill(null), trace: { t: [], ap: [], ml: [], dir: [] }, t0: 0 } : null;
+  let session;
+  try { session = await navigator.xr.requestSession(xrMode, { optionalFeatures: ['local'] }); }
+  catch (e) { toast('Nu am putut porni sesiunea VR: ' + (e.message || e)); return; }
+  running = true; updateStartState();
+  run.session = session;
+  if (xrMode === 'immersive-vr') { scene.background = new THREE.Color(0x1b2421); floorGrid.visible = true; }
+  else { scene.background = null; floorGrid.visible = false; }
+  session.addEventListener('select', onSelect);
+  session.addEventListener('squeeze', onSqueeze);
+  session.addEventListener('end', () => { if (running) endRun('Sesiunea VR s-a închis.', true); });
+  await renderer.xr.setSession(session);
+  let prev = null, placed = false;
+  renderer.setAnimationLoop((time, frame) => {
+    const t = time / 1000;
+    const dt = prev == null ? 0 : Math.min(0.1, t - prev); prev = t;
+    if (frame) {
+      const ref = renderer.xr.getReferenceSpace();
+      const pose = ref && frame.getViewerPose(ref);
+      if (pose) {
+        if (!placed) { placed = true; run.lastPose = pose.transform; run.lastT = t; run.kind === 'los' ? losReady() : showReady(); }
+        onFrame(t, pose.transform);
+      }
+    }
+    if (stripes.visible) stripes.rotation.y += dt * THREE.MathUtils.degToRad(10);
+    renderer.render(scene, camera);
+  });
+}
+
+async function endRun(message, sessionAlreadyEnded) {
+  if (!running) return;
+  running = false;
+  if (run.kind === 'sway' && run.phase === 'record') finishTrial(true, 'sesiune întreruptă');
+  run.phase = 'idle';
+  try { renderer.setAnimationLoop(null); } catch (e) {}
+  if (!sessionAlreadyEnded && run.session) { try { await run.session.end(); } catch (e) {} }
+  run.session = null;
+  const hasData = run.kind === 'los' ? run.los.results.length > 0 : run.trials.length > 0;
+  if (hasData) { await saveSession({ simulated: false }); toast(message || 'Test salvat.'); }
+  else if (message) toast(message);
+  updateStartState();
+}
+
+async function saveSession({ simulated }) {
+  const now = new Date();
+  const sess = {
+    id: now.toISOString() + '-' + Math.random().toString(36).slice(2, 7),
+    date: now.toISOString(),
+    kind: run.kind,
+    simulated: !!simulated,
+    device: simulated ? 'simulare' : (navigator.userAgent.includes('Quest') ? 'Meta Quest' : 'WebXR'),
+    journal: run.journal,
+    settings: run.kind === 'los' ? { stance: run.settings.stance, target_cm: LOS_TARGET * 100, lean_s: LOS_LEAN } : run.settings,
+    trials: run.kind === 'los' ? [] : run.trials
+  };
+  if (run.kind === 'los') sess.los = { dirs: run.los.results, trace: run.los.trace };
+  await dbPut(sess);
+  await renderAll();
+}
+
+// ---------- simulare (pentru verificare pe PC)
+function gauss() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function simulateTrial(cond, dur) {
+  const amp = { open: 1, closed: 1.6, okn: 1.4, foam_open: 1.8, foam_closed: 3.4 }[cond] * (0.8 + Math.random() * 0.4);
+  const hz = 72, n = Math.round(dur * hz);
+  const s = { t: [], x: [], y: [], z: [], qx: [], qy: [], qz: [], qw: [] };
+  let vx = 0, vz = 0, x = 0, z = 0;
+  for (let i = 0; i < n; i++) {
+    vx = 0.96 * vx + gauss() * 0.00008 * amp - 0.02 * x;   // x = lateral (privire spre -z)
+    vz = 0.96 * vz + gauss() * 0.00006 * amp - 0.02 * z;
+    x += vx; z += vz;
+    const r4 = v => Math.round(v * 10000) / 10000;
+    s.t.push(Math.round(i / hz * 1000) / 1000);
+    s.x.push(r4(x + gauss() * 0.00006)); s.y.push(r4(gauss() * 0.0005)); s.z.push(r4(z + gauss() * 0.00006));
+    s.qx.push(0); s.qy.push(0); s.qz.push(0); s.qw.push(1);
+  }
+  const heading = [0, -1];
+  return { cond, stopped: false, reason: '', heading, samples: s, metrics: computeMetrics(s, heading) };
+}
+function simulateLos() {
+  // profil generic, ușor asimetric, doar ca să se vadă cum arată graficul
+  const base = { 0: 12, 45: 10, 90: 8, 135: 6, 180: 7, 225: 7, 270: 9, 315: 11 };
+  return LOS_DIRS.map(d => ({ angle: d.angle, name: d.name, max_cm: Math.round((base[d.angle] * (0.85 + Math.random() * 0.3)) * 10) / 10, stopped: false }));
+}
+$('btnSim').addEventListener('click', async () => {
+  run.kind = testKind();
+  run.journal = readJournal(); run.settings = settings();
+  if (run.kind === 'los') { run.los = { results: simulateLos(), trace: null }; run.trials = []; }
+  else run.trials = run.settings.conds.map(c => simulateTrial(c, run.settings.duration));
+  await saveSession({ simulated: true });
+  toast('Simulare salvată (marcată ca simulare).');
+});
+$('btnStart').addEventListener('click', () => { if (!$('btnStart').disabled) startXR(); });
+
+// ---------- afișare
+let sessions = [];
+const fmtDate = iso => { const d = new Date(iso); return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }); };
+const fmtShort = iso => new Date(iso).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit' });
+const fmt = (v, d = 1) => (v == null || isNaN(v)) ? '–' : Number(v).toFixed(d).replace('.', ',');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+async function renderAll() {
+  sessions = (await dbAll()).sort((a, b) => a.date.localeCompare(b.date));
+  renderLast(); renderLos(); renderEvo();
+}
+
+function profileCard(p, title, desc, key) {
+  let v;
+  if (!p) v = '<span class="v">–</span>';
+  else if (p.stopped) v = '<span class="v" style="color:var(--bad)">oprită</span>';
+  else v = `<span class="v">×${fmt(p.value, 2)}</span>`;
+  return `<div class="prof${key ? ' key' : ''}">${key ? '<span class="tag">proba cea mai exigentă</span>' : ''}<span class="lbl">${title}</span>${v}<p>${desc}</p></div>`;
+}
+
+function renderLast() {
+  const sway = sessions.filter(s => kindOf(s) === 'sway');
+  const last = sway[sway.length - 1];
+  $('lastEmpty').hidden = !!last; $('lastBody').hidden = !last;
+  if (!last) { $('lastDate').textContent = ''; return; }
+  $('lastDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + ' · picioare ' + (last.settings?.stance || '–');
+
+  const pr = sensoryProfile(last.trials);
+  $('profile').innerHTML =
+    profileCard(pr.romberg, 'Fără vedere', 'Podea, ochi închiși. Cât de mult se bazează echilibrul pe ochi.') +
+    profileCard(pr.foam, 'Fără sprijinul tălpilor', 'Pernă, ochi deschiși. Cât contează sensibilitatea din picioare.') +
+    profileCard(pr.vestibular, 'Doar urechea internă', 'Pernă, ochi închiși. Corespunde condiției 5 de la posturografie.', true) +
+    (pr.okn ? profileCard(pr.okn, 'Vedere înșelătoare', 'Dungi în mișcare. Cât perturbă echilibrul mișcarea din jur.') : '');
+
+  const { ctx, W, H } = { ctx: $('trace').getContext('2d'), W: $('trace').width, H: $('trace').height };
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
+  let maxAbs = 2;
+  last.trials.forEach(tr => { if (tr.metrics) { tr.metrics.trace.ap.forEach(v => { maxAbs = Math.max(maxAbs, Math.abs(v)); }); tr.metrics.trace.ml.forEach(v => { maxAbs = Math.max(maxAbs, Math.abs(v)); }); } });
+  const lim = Math.ceil(maxAbs + 0.5);
+  const pad = 48, S = (W - 2 * pad) / (2 * lim), cx = W / 2, cy = H / 2;
+  const gstep = lim > 8 ? 2 : 1;
+  ctx.lineWidth = 1;
+  for (let v = -lim; v <= lim; v += 1) {
+    if (v % gstep) continue;
+    ctx.strokeStyle = v === 0 ? css('--muted') : css('--grid');
+    ctx.globalAlpha = v === 0 ? 0.5 : 1;
+    ctx.beginPath(); ctx.moveTo(cx + v * S, pad); ctx.lineTo(cx + v * S, H - pad); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad, cy - v * S); ctx.lineTo(W - pad, cy - v * S); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = css('--muted'); ctx.font = '22px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+  ctx.fillText('înainte', cx, pad - 14); ctx.fillText('înapoi', cx, H - pad + 32);
+  ctx.save(); ctx.translate(pad - 16, cy); ctx.rotate(-Math.PI / 2); ctx.fillText('stânga', 0, 0); ctx.restore();
+  ctx.save(); ctx.translate(W - pad + 16, cy); ctx.rotate(Math.PI / 2); ctx.fillText('dreapta', 0, 0); ctx.restore();
+  ctx.textAlign = 'right'; ctx.fillText(`grilă: ${gstep} cm`, W - pad, H - 10);
+  last.trials.forEach(tr => {
+    if (!tr.metrics) return;
+    const { ap, ml } = tr.metrics.trace;
+    ctx.strokeStyle = css(COND[tr.cond].color); ctx.lineWidth = 2; ctx.globalAlpha = 0.8; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < ap.length; i++) { const x = cx + ml[i] * S, y = cy - ap[i] * S; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  });
+  $('traceLegend').innerHTML = last.trials.map(tr => `<span><i style="background:var(${COND[tr.cond].color})"></i>${COND[tr.cond].label}</span>`).join('');
+
+  const rows = last.trials.map(tr => {
+    const m = tr.metrics || {};
+    const st = tr.stopped ? `<span class="pill bad" title="${esc(tr.reason)}">oprită</span>` : '<span class="pill">completă</span>';
+    return `<tr><td><span class="sw" style="background:var(${COND[tr.cond].color})"></span>${COND[tr.cond].label}</td>
+      <td class="num key">${fmt(m.rmsML_cm, 2)}</td><td class="num">${fmt(m.rmsAP_cm, 2)}</td>
+      <td class="num">${fmt(m.velocity_cms, 2)}</td><td class="num">${fmt(m.area95_cm2, 1)}</td><td class="num">${fmt(m.duration_s, 0)}</td><td>${st}</td></tr>`;
+  }).join('');
+  $('lastTable').innerHTML = `<thead><tr><th>Probă</th><th class="num key">Lateral cm</th><th class="num">Față–spate cm</th><th class="num">Viteză cm/s</th><th class="num">Arie cm²</th><th class="num">Sec.</th><th>Stare</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+function drawLosShape(ctx, dirs, cx, cy, k, style) {
+  ctx.beginPath();
+  for (let i = 0; i <= 8; i++) {
+    const d = dirs.find(x => x.angle === (i % 8) * 45);
+    const r = (d ? d.max_cm : 0) * k, a = (i % 8) * 45 * Math.PI / 180;
+    const x = cx + Math.sin(a) * r, y = cy - Math.cos(a) * r;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  if (style.fill) { ctx.fillStyle = style.fill; ctx.globalAlpha = 0.18; ctx.fill(); ctx.globalAlpha = 1; }
+  ctx.setLineDash(style.dash || []); ctx.strokeStyle = style.stroke; ctx.lineWidth = style.width || 3; ctx.stroke(); ctx.setLineDash([]);
+}
+function renderLos() {
+  const list = sessions.filter(s => kindOf(s) === 'los');
+  const last = list[list.length - 1], prev = list[list.length - 2];
+  $('losEmpty').hidden = !!last; $('losBody').hidden = !last;
+  if (!last) { $('losDate').textContent = ''; return; }
+  $('losDate').textContent = fmtDate(last.date) + (last.simulated ? ' · simulare' : '') + (prev ? ` · comparat cu ${fmtShort(prev.date)}` : '');
+  const cv = $('losPlot'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
+  let maxR = LOS_TARGET * 100;
+  [last, prev].forEach(s => s && s.los.dirs.forEach(d => { maxR = Math.max(maxR, d.max_cm); }));
+  const cx = W / 2, cy = H / 2, R = W / 2 - 110, k = R / (Math.ceil(maxR / 5) * 5);
+  ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  for (let v = 5; v <= Math.ceil(maxR / 5) * 5; v += 5) { ctx.beginPath(); ctx.arc(cx, cy, v * k, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(cx, cy, LOS_TARGET * 100 * k, 0, Math.PI * 2); ctx.stroke();
+  ctx.lineWidth = 1;
+  ctx.fillStyle = css('--muted'); ctx.font = '22px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+  LOS_DIRS.forEach(d => {
+    const a = d.angle * Math.PI / 180;
+    ctx.strokeStyle = css('--grid'); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.sin(a) * R, cy - Math.cos(a) * R); ctx.stroke();
+  });
+  [['înainte', 0], ['dreapta', 90], ['înapoi', 180], ['stânga', 270]].forEach(([n, ang]) => {
+    const a = ang * Math.PI / 180;
+    ctx.fillText(n, cx + Math.sin(a) * (R + 58), cy - Math.cos(a) * (R + 30) + 8);
+  });
+  ctx.textAlign = 'left'; ctx.fillText('cercuri la 5 cm', 16, H - 16);
+  if (prev) drawLosShape(ctx, prev.los.dirs, cx, cy, k, { stroke: css('--muted'), dash: [10, 8], width: 3 });
+  drawLosShape(ctx, last.los.dirs, cx, cy, k, { stroke: css('--accent'), fill: css('--accent'), width: 4 });
+  last.los.dirs.forEach(d => {
+    const a = d.angle * Math.PI / 180, r = d.max_cm * k;
+    ctx.fillStyle = d.stopped ? css('--bad') : css('--accent');
+    ctx.beginPath(); ctx.arc(cx + Math.sin(a) * r, cy - Math.cos(a) * r, 7, 0, Math.PI * 2); ctx.fill();
+  });
+
+  const s = losSummary(last.los.dirs), sp = prev ? losSummary(prev.los.dirs) : null;
+  const delta = (a, b, d = 1) => b == null ? '' : `<small> (anterior ${fmt(b, d)})</small>`;
+  const asymTxt = s.asymLR === 0 ? 'echilibrat' : s.asymLR > 0 ? `cu ${Math.abs(s.asymLR)}% mai puțin spre dreapta` : `cu ${Math.abs(s.asymLR)}% mai puțin spre stânga`;
+  $('losSummary').innerHTML =
+    `<div class="prof key"><span class="tag">asimetria</span><span class="lbl">Stânga ↔ dreapta</span><span class="v">${fmt(s.left)} / ${fmt(s.right)}<small> cm</small></span><p>Aplecare ${asymTxt}.${sp ? ` Anterior: ${fmt(sp.left)} / ${fmt(sp.right)} cm.` : ''}</p></div>` +
+    `<div class="prof"><span class="lbl">Aria limitelor</span><span class="v">${fmt(s.area_cm2, 0)}<small> cm²</small>${delta(s.area_cm2, sp?.area_cm2, 0)}</span><p>Cât de mare e zona în care se poate mișca fără să cadă. Mai mare = mai bine.</p></div>`;
+  $('losTable').innerHTML = `<thead><tr><th>Direcție</th><th class="num">Ultimul cm</th><th class="num">Anterior cm</th><th class="num">% din țintă</th></tr></thead><tbody>` +
+    LOS_DIRS.map(d => {
+      const a = last.los.dirs.find(x => x.angle === d.angle), b = prev?.los.dirs.find(x => x.angle === d.angle);
+      return `<tr><td>${d.name}${a?.stopped ? ' <span class="pill bad">oprit</span>' : ''}</td><td class="num">${fmt(a?.max_cm)}</td><td class="num">${fmt(b?.max_cm)}</td><td class="num">${a ? Math.round(a.max_cm / (LOS_TARGET * 100) * 100) + '%' : '–'}</td></tr>`;
+    }).join('') + '</tbody>';
+}
+
+function renderEvo() {
+  const stance = $('s-stance').value, metric = $('evoMetric').value;
+  const list = sessions.filter(s => kindOf(s) === 'sway' && (s.settings?.stance || 'apropiate') === stance);
+  $('evoEmpty').hidden = list.length > 0; $('evoBody').hidden = list.length === 0;
+  $('evoHint').textContent = list.length ? `${list.length} teste de balans cu picioarele ${stance}` : '';
+
+  const rowsHtml = sessions.slice().reverse().map(s => {
+    const j = s.journal || {};
+    const tail = `<td class="num">${j.instabilitate ?? '–'}</td><td class="num">${j.ameteala ?? '–'}</td><td>${j.perioada_grea ? '<span class="pill bad">da</span>' : 'nu'}</td><td><button class="small danger" data-del="${esc(s.id)}">Șterge</button></td>`;
+    const date = `<td>${fmtDate(s.date)}${s.simulated ? ' <span class="pill">simulare</span>' : ''}</td><td>${kindOf(s) === 'los' ? 'aplecări' : 'balans'} · ${esc(s.settings?.stance || '–')}</td>`;
+    if (kindOf(s) === 'los') {
+      const L = losSummary(s.los.dirs);
+      return `<tr>${date}<td colspan="5">aria ${fmt(L.area_cm2, 0)} cm² · stânga ${fmt(L.left)} / dreapta ${fmt(L.right)} cm</td>${tail}</tr>`;
+    }
+    const v = c => { const t = s.trials.find(x => x.cond === c); if (!t) return '–'; if (t.stopped) return 'oprită'; return t.metrics ? fmt(t.metrics.rmsML_cm, 2) : '–'; };
+    return `<tr>${date}${ORDER.map(c => `<td class="num">${v(c)}</td>`).join('')}${tail}</tr>`;
+  }).join('');
+  $('histTable').innerHTML = `<thead><tr><th>Data</th><th>Tip</th>${ORDER.map(c => `<th class="num">${COND[c].short}</th>`).join('')}<th class="num">Nesig.</th><th class="num">Amețeală</th><th>Zi grea</th><th></th></tr></thead><tbody>${rowsHtml}</tbody>`;
+  if (!list.length) return;
+
+  // serii
+  let series;
+  if (metric === 'ratio') {
+    const keys = [['romberg', 'Fără vedere', '--c-closed'], ['foam', 'Fără sprijinul tălpilor', '--c-foam-open'], ['vestibular', 'Doar urechea internă', '--c-foam-closed']];
+    series = keys.map(([k, name, col]) => ({ name, color: css(col), pts: list.map(s => { const p = sensoryProfile(s.trials)[k]; return { v: p && !p.stopped ? p.value : null, stopped: !!(p && p.stopped), sim: s.simulated }; }) }));
+    $('evoExplain').textContent = 'De câte ori crește oscilația față de proba pe podea cu ochii deschiși. O valoare care scade în timp înseamnă că acel sistem compensează mai bine. Linia „Doar urechea internă” e proba cea mai exigentă.';
+  } else {
+    series = ORDER.map(c => ({ name: COND[c].label, color: css(COND[c].color), pts: list.map(s => { const t = s.trials.find(x => x.cond === c); return { v: t && t.metrics && !t.stopped ? t.metrics[metric] : null, stopped: !!(t && t.stopped), sim: s.simulated }; }) }))
+      .filter(se => se.pts.some(p => p.v != null || p.stopped));
+    const what = { velocity_cms: 'viteza medie de oscilație a capului, în cm/s', rmsML_cm: 'cât oscilează capul stânga–dreapta (RMS), în cm', rmsAP_cm: 'cât oscilează capul față–spate (RMS), în cm' }[metric];
+    $('evoExplain').textContent = `Axa verticală: ${what}. Mai jos înseamnă mai stabil. Contează tendința de-a lungul săptămânilor, nu o singură zi. „×” jos = probă oprită.`;
+  }
+  $('evoLegend').innerHTML = series.map(se => `<span><i style="background:${se.color}"></i>${se.name}</span>`).join('') +
+    '<span><i class="dot" style="background:var(--bad-bg);border:1px solid var(--bad)"></i>Zi mai grea decât de obicei</span><span><i class="dot" style="border:2px solid var(--muted)"></i>Simulare</span>';
+
+  const cv = $('evo'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
+  const L = 84, R = 24, T = 24, B = 64;
+  let maxV = metric === 'ratio' ? 2 : 0.5;
+  series.forEach(se => se.pts.forEach(p => { if (p.v != null) maxV = Math.max(maxV, p.v); }));
+  const step = maxV <= 2 ? 0.5 : maxV <= 5 ? 1 : maxV <= 10 ? 2 : 5;
+  const top = Math.ceil(maxV / step) * step;
+  const n = list.length;
+  const X = i => n === 1 ? (L + W - R) / 2 : L + i * (W - L - R) / (n - 1);
+  const Y = v => H - B - v / top * (H - T - B);
+  const colW = n === 1 ? 60 : Math.max(10, (W - L - R) / (n - 1) * 0.6);
+  list.forEach((s, i) => { if (s.journal?.perioada_grea) { ctx.fillStyle = css('--bad-bg'); ctx.fillRect(X(i) - colW / 2, T, colW, H - T - B); } });
+  ctx.font = '22px "IBM Plex Mono", monospace'; ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.lineWidth = 1;
+  for (let v = 0; v <= top + 1e-9; v += step) {
+    ctx.strokeStyle = css('--grid'); ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(W - R, Y(v)); ctx.stroke();
+    ctx.fillText(fmt(v, step < 1 ? 1 : 0), L - 12, Y(v) + 7);
+  }
+  if (metric === 'ratio') { ctx.strokeStyle = css('--muted'); ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(L, Y(1)); ctx.lineTo(W - R, Y(1)); ctx.stroke(); ctx.setLineDash([]); }
+  ctx.textAlign = 'center'; ctx.fillStyle = css('--muted');
+  const every = Math.max(1, Math.ceil(n / 10));
+  list.forEach((s, i) => { if (i % every === 0 || i === n - 1) { ctx.textAlign = n > 1 && i === n - 1 ? 'right' : n > 1 && i === 0 ? 'left' : 'center'; ctx.fillText(fmtShort(s.date), X(i) + (ctx.textAlign === 'right' ? 6 : ctx.textAlign === 'left' ? -6 : 0), H - B + 34); } }); ctx.textAlign = 'center';
+  series.forEach(se => {
+    ctx.strokeStyle = se.color; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+    ctx.beginPath(); let started = false;
+    se.pts.forEach((p, i) => { if (p.v == null) return; started ? ctx.lineTo(X(i), Y(p.v)) : ctx.moveTo(X(i), Y(p.v)); started = true; });
+    ctx.stroke();
+    se.pts.forEach((p, i) => {
+      if (p.v == null) { if (p.stopped) { ctx.fillStyle = se.color; ctx.fillText('×', X(i), H - B - 6); } return; }
+      ctx.beginPath(); ctx.arc(X(i), Y(p.v), 7, 0, Math.PI * 2);
+      if (p.sim) { ctx.fillStyle = css('--paper'); ctx.fill(); ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 3; }
+      else { ctx.fillStyle = se.color; ctx.fill(); }
+    });
+  });
+}
+
+// ștergere cu confirmare în pagină
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button[data-del]');
+  if (!b) return;
+  if (!b.classList.contains('armed')) {
+    b.classList.add('armed'); b.textContent = 'Confirmă';
+    setTimeout(() => { if (b.isConnected) { b.classList.remove('armed'); b.textContent = 'Șterge'; } }, 4000);
+    return;
+  }
+  await dbDel(b.dataset.del); await renderAll(); toast('Test șters.');
+});
+
+// ---------- export / import
+function download(name, text, type) {
+  try {
+    const blob = new Blob([text], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  } catch (e) { toast('Descărcarea nu a pornit: ' + e.message); }
+}
+const csvCell = v => { const s = v == null ? '' : String(v); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const stamp = () => new Date().toISOString().slice(0, 10);
+
+$('btnCsv').addEventListener('click', () => {
+  if (!sessions.length) { toast('Nu există încă teste.'); return; }
+  const head = ['data', 'tip_test', 'simulare', 'picioare', 'nesiguranta_0_10', 'ameteala_0_10', 'somn_ore', 'zi_mai_grea', 'durere_cap', 'observatii',
+    'proba', 'oprita', 'motiv_oprire', 'durata_analizata_s', 'viteza_cm_s', 'traseu_cm', 'arie95_cm2', 'rms_fata_spate_cm', 'rms_lateral_cm', 'amplitudine_fata_spate_cm', 'amplitudine_lateral_cm',
+    'raport_fara_vedere', 'raport_pe_perna', 'raport_doar_ureche_interna', 'limita_aplecare_cm'];
+  const lines = [head.join(',')];
+  const pv = p => p == null ? '' : p.stopped ? 'oprita' : p.value;
+  sessions.forEach(s => {
+    const j = s.journal || {};
+    const common = [s.date, kindOf(s) === 'los' ? 'limite stabilitate' : 'balans', s.simulated ? 'da' : 'nu', s.settings?.stance, j.instabilitate, j.ameteala, j.somn_ore, j.perioada_grea ? 'da' : 'nu', j.durere_cap ? 'da' : 'nu', j.observatii];
+    if (kindOf(s) === 'los') {
+      s.los.dirs.forEach(d => lines.push([...common, 'aplecare ' + d.name, d.stopped ? 'da' : 'nu', '', '', '', '', '', '', '', '', '', '', '', '', d.max_cm].map(csvCell).join(',')));
+      return;
+    }
+    const pr = sensoryProfile(s.trials);
+    s.trials.forEach(t => {
+      const m = t.metrics || {};
+      lines.push([...common, COND[t.cond].label, t.stopped ? 'da' : 'nu', t.reason, m.duration_s, m.velocity_cms, m.path_cm, m.area95_cm2, m.rmsAP_cm, m.rmsML_cm, m.rangeAP_cm, m.rangeML_cm,
+        pv(pr.romberg), pv(pr.foam), pv(pr.vestibular), ''].map(csvCell).join(','));
+    });
+  });
+  download(`jurnal-echilibru-${stamp()}.csv`, '﻿' + lines.join('\n'), 'text/csv;charset=utf-8');
+});
+$('btnJson').addEventListener('click', () => {
+  if (!sessions.length) { toast('Nu există încă teste.'); return; }
+  download(`jurnal-echilibru-backup-${stamp()}.json`, JSON.stringify({ format: 'jurnal-echilibru', version: 2, exported: new Date().toISOString(), clinical_notes: loadClinical(), sessions }), 'application/json');
+});
+$('btnRaw').addEventListener('click', () => {
+  const sway = sessions.filter(s => kindOf(s) === 'sway');
+  const last = sway[sway.length - 1];
+  if (!last) return;
+  const lines = ['proba,t_s,x_m,y_m,z_m,qx,qy,qz,qw'];
+  last.trials.forEach(t => {
+    const s = t.samples; if (!s) return;
+    for (let i = 0; i < s.t.length; i++) lines.push([t.cond, s.t[i], s.x[i], s.y[i], s.z[i], s.qx[i], s.qy[i], s.qz[i], s.qw[i]].join(','));
+  });
+  download(`echilibru-brut-${last.date.slice(0, 16).replace(/[:T]/g, '-')}.csv`, lines.join('\n'), 'text/csv');
+});
+$('fileImport').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    const list = Array.isArray(data) ? data : data.sessions;
+    if (!Array.isArray(list)) throw new Error('fișierul nu conține teste');
+    if (typeof data.clinical_notes === 'string' && data.clinical_notes && !loadClinical()) { $('clin').value = data.clinical_notes; saveClinical(); }
+    let n = 0;
+    for (const s of list) {
+      const ok = s && s.id && s.date && (Array.isArray(s.trials) || (s.los && Array.isArray(s.los.dirs)));
+      if (ok) { if (!Array.isArray(s.trials)) s.trials = []; await dbPut(s); n++; }
+    }
+    await renderAll(); toast(`Am importat ${n} teste.`);
+  } catch (err) { toast('Importul a eșuat: ' + err.message); }
+  e.target.value = '';
+});
+
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderLast(); renderLos(); renderEvo(); }); } catch (e) {}
+
+// notițele din evaluarea clinică: doar în acest browser, afișate lângă instrucțiunile testului
+function loadClinical() { try { return localStorage.getItem('je-clinical') || ''; } catch (e) { return ''; } }
+function saveClinical() {
+  const v = $('clin').value.trim();
+  try { localStorage.setItem('je-clinical', v); } catch (e) {}
+  $('clinNoteText').textContent = v; $('clinNote').hidden = !v;
+}
+$('clin').value = loadClinical();
+$('clin').addEventListener('input', saveClinical);
+saveClinical();
+
+loadPrefs();
+updateStartState();
+detectXR();
+renderAll();
+</script>
+</body>
+</html>
