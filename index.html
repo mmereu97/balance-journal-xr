@@ -23,6 +23,9 @@
   --c-okn: #6a4ca0;
   --c-foam-open: #17786c;
   --c-foam-closed: #a3306f;
+  --c-tandem-open: #8a6a12; --c-tandem-closed: #c0841a;
+  --c-leg-r-open: #3f7a22; --c-leg-l-open: #6c9e2e; --c-leg-r-closed: #22657a; --c-leg-l-closed: #4a93a8;
+  --c-hs-floor: #7b3d9e; --c-hs-foam: #b63a86; --c-bess: #5a5f6b;
   --bad: #b42318;
   --bad-bg: #fbe9e7;
   --good: #2c7a4b;
@@ -39,6 +42,8 @@
     --bg: #0e1513; --paper: #151d1b; --ink: #e3ebe8; --muted: #93a39d; --line: #2a3632; --grid: #1e2926;
     --accent: #7ea8ee; --accent-ink: #0b1220; --c-open: #7ea8ee; --c-closed: #e38c62; --c-okn: #b59de3;
     --c-foam-open: #5cc4b6; --c-foam-closed: #e07ab8;
+    --c-tandem-open: #e0b85a; --c-tandem-closed: #f0c674; --c-leg-r-open: #8fcf6a; --c-leg-l-open: #b5dc7f; --c-leg-r-closed: #6cc3d8; --c-leg-l-closed: #98d6e6;
+    --c-hs-floor: #c49be3; --c-hs-foam: #ee8cc6; --c-bess: #aab0bb;
     --bad: #f0857a; --bad-bg: #3a1c19; --good: #6cc191; --warn-bg: #33290f; --warn-ink: #f0cd84; --focus-bg: #18233a;
     color-scheme: dark;
   }
@@ -47,6 +52,8 @@
   --bg: #0e1513; --paper: #151d1b; --ink: #e3ebe8; --muted: #93a39d; --line: #2a3632; --grid: #1e2926;
   --accent: #7ea8ee; --accent-ink: #0b1220; --c-open: #7ea8ee; --c-closed: #e38c62; --c-okn: #b59de3;
   --c-foam-open: #5cc4b6; --c-foam-closed: #e07ab8;
+    --c-tandem-open: #e0b85a; --c-tandem-closed: #f0c674; --c-leg-r-open: #8fcf6a; --c-leg-l-open: #b5dc7f; --c-leg-r-closed: #6cc3d8; --c-leg-l-closed: #98d6e6;
+    --c-hs-floor: #c49be3; --c-hs-foam: #ee8cc6; --c-bess: #aab0bb;
   --bad: #f0857a; --bad-bg: #3a1c19; --good: #6cc191; --warn-bg: #33290f; --warn-ink: #f0cd84; --focus-bg: #18233a;
   color-scheme: dark;
 }
@@ -201,6 +208,8 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
       <span id="liveSub"></span>
       <div class="actions">
         <button class="primary" id="btnNext" disabled>Pornește proba</button>
+        <button id="btnTouch" hidden>A pus piciorul jos</button>
+        <button id="btnErr" hidden>+1 greșeală</button>
         <button class="danger" id="btnAbort" disabled>Oprește tot</button>
       </div>
       <p class="hint">„Pornește proba” face același lucru ca trăgaciul din cască, iar „Oprește tot” ca butonul grip. Rămâi lângă persoana testată: imaginea vine cu o mică întârziere.</p>
@@ -256,9 +265,12 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
     <div class="seg" role="radiogroup">
       <label for="k-sway"><input type="radio" name="kind" id="k-sway" value="sway" checked><span>Test de balans<small>Stai fără să te miști, pe podea și pe pernă. De 2–3 ori pe săptămână.</small></span></label>
       <label for="k-los"><input type="radio" name="kind" id="k-los" value="los"><span>Limite de stabilitate<small>Te apleci în 8 direcții, fără să faci pas. O dată pe săptămână.</small></span></label>
+      <label for="k-bess" class="adv-only" hidden><input type="radio" name="kind" id="k-bess" value="bess"><span>BESS (avansat)<small>6 poziții de câte 20 s, cu ochii închiși, pe podea și pe pernă. Se numără greșelile.</small></span></label>
+      <label for="k-fukuda" class="adv-only" hidden><input type="radio" name="kind" id="k-fukuda" value="fukuda"><span>Fukuda (avansat)<small>50 de pași pe loc, cu ochii închiși. Se măsoară cât te rotești și cât te deplasezi.</small></span></label>
     </div>
     <div class="checks" style="margin-top:6px">
       <label class="check" for="j-practice"><input type="checkbox" id="j-practice"><span>Test de probă (nu se salvează)<small>Pentru încercări: rezultatul se vede, dar nu intră în istoric și dispare la reîncărcarea paginii.</small></span></label>
+      <label class="check" for="k-adv"><input type="checkbox" id="k-adv"><span>Arată testele avansate<small>Tandem, într-un picior, capul în mișcare, BESS și Fukuda. Doar fără probleme de echilibru sau cu acordul medicului.</small></span></label>
     </div>
   </div>
 
@@ -289,6 +301,17 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
       <label class="check" for="c-foam_open"><input type="checkbox" id="c-foam_open" checked><span><span class="sw" style="background:var(--c-foam-open)"></span>Pernă · ochi deschiși<small>Perna „șterge” informația din tălpi; rămân ochii și urechea internă.</small></span></label>
       <label class="check" for="c-foam_closed"><input type="checkbox" id="c-foam_closed"><span><span class="sw" style="background:var(--c-foam-closed)"></span>Pernă · ochi închiși<small>Rămâne aproape doar urechea internă: echivalentul de acasă al condiției 5 de la posturografie. Bifeaz-o după 2–3 teste în care proba pe pernă cu ochii deschiși a mers fără probleme.</small></span></label>
     </div>
+    <div class="checks" id="advProbes" hidden style="margin-top:8px">
+      <span class="lbl">Probe avansate</span>
+      <label class="check" for="c-tandem_open"><input type="checkbox" id="c-tandem_open"><span><span class="sw" style="background:var(--c-tandem-open)"></span>Tandem · ochi deschiși<small>Un picior în fața celuilalt, călcâiul lipit de vârf (dreptul în față). Bază îngustă: crește oscilația laterală.</small></span></label>
+      <label class="check" for="c-tandem_closed"><input type="checkbox" id="c-tandem_closed"><span><span class="sw" style="background:var(--c-tandem-closed)"></span>Tandem · ochi închiși<small>Romberg „ascuțit”: tandem fără vedere.</small></span></label>
+      <label class="check" for="c-leg_r_open"><input type="checkbox" id="c-leg_r_open"><span><span class="sw" style="background:var(--c-leg-r-open)"></span>Piciorul drept · ochi deschiși<small>Celălalt picior ridicat, fără să-l atingă pe cel de sprijin. Se notează câte secunde ține.</small></span></label>
+      <label class="check" for="c-leg_l_open"><input type="checkbox" id="c-leg_l_open"><span><span class="sw" style="background:var(--c-leg-l-open)"></span>Piciorul stâng · ochi deschiși</span></label>
+      <label class="check" for="c-leg_r_closed"><input type="checkbox" id="c-leg_r_closed"><span><span class="sw" style="background:var(--c-leg-r-closed)"></span>Piciorul drept · ochi închiși<small>Cea mai grea probă statică.</small></span></label>
+      <label class="check" for="c-leg_l_closed"><input type="checkbox" id="c-leg_l_closed"><span><span class="sw" style="background:var(--c-leg-l-closed)"></span>Piciorul stâng · ochi închiși</span></label>
+      <label class="check" for="c-hs_floor"><input type="checkbox" id="c-hs_floor"><span><span class="sw" style="background:var(--c-hs-floor)"></span>Podea · ochi închiși · capul în mișcare<small>Capul se întoarce stânga–dreapta la fiecare bip (cam 15°), ca un „nu” lent.</small></span></label>
+      <label class="check" for="c-hs_foam"><input type="checkbox" id="c-hs_foam"><span><span class="sw" style="background:var(--c-hs-foam)"></span>Pernă · ochi închiși · capul în mișcare<small>Ca proba de mai sus, pe pernă: încercarea cea mai grea pentru urechea internă.</small></span></label>
+    </div>
   </div>
 
   <div class="field">
@@ -303,6 +326,16 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
   <div class="note" id="noteSway">
     <p><b>Perna:</b> o pernă de echilibru din spumă fermă, groasă de 6–10 cm, care nu alunecă (de ex. un balance pad de ~6 cm), pe un covoraș antiderapant. Folosiți mereu aceeași pernă: altă spumă dă alte cifre. Pusă în colț, lângă perete. Se urcă și se coboară de pe ea doar cu sprijinul însoțitorului.</p>
     <p><b>În cască:</b> apasă <b>trăgaciul</b> (sau ciupește cu degetele) ca să începi proba afișată. Urmează 3 bipuri scurte, apoi un bip lung = <b>start</b> (la probele cu ochii închiși: închide ochii acum). Două bipuri = <b>gata</b>. Butonul <b>grip</b> oprește imediat tot. Dacă se mișcă mai mult de 20 cm, proba se oprește singură și se notează. Și asta e o informație utilă.</p>
+  </div>
+  <div class="note" id="noteAdv" hidden>
+    <p><b>Probele avansate:</b> la <b>tandem</b>, piciorul drept în față, călcâiul lipit de vârful celuilalt. <b>Într-un picior:</b> celălalt picior ridicat cam la înălțimea gleznei, fără să-l atingă pe cel de sprijin; când pune piciorul jos, apasă trăgaciul (sau însoțitorul apasă pe calculator), iar proba se termină acolo. <b>Capul în mișcare:</b> la fiecare bip, capul se întoarce în cealaltă parte, cam 15°, cu ochii închiși tot timpul.</p>
+  </div>
+  <div class="note" id="noteBess" hidden>
+    <p><b>BESS</b> (Balance Error Scoring System): 6 probe de 20 s, toate cu ochii închiși și mâinile pe șolduri: picioare lipite, pe piciorul nedominant (de obicei stângul), tandem cu piciorul nedominant în spate; întâi pe podea, apoi pe pernă.</p>
+    <p><b>Greșeli</b> (câte una de fiecare dată, cel mult 10 pe probă): deschide ochii, ia mâinile de pe șolduri, face un pas sau se clatină, ridică vârful sau călcâiul, depărtează coapsa mult, rămâne peste 5 s în afara poziției. Le numără însoțitorul, cu „+1 greșeală” pe calculator, sau persoana testată, cu trăgaciul. Un pas mare îl numără și casca singură. Scorul e suma: mai puțin = mai bine.</p>
+  </div>
+  <div class="note" id="noteFukuda" hidden>
+    <p><b>Fukuda:</b> spațiu liber de cel puțin 2 m în jur, fără obstacole, iar însoțitorul aproape. În picioare, brațele întinse înainte, iar la bipul lung închide ochii și face <b>50 de pași pe loc</b>, în ritmul bipurilor, ridicând genunchii. Nu corectează direcția. Casca numără pașii din mișcarea capului și măsoară cât s-a rotit și cât s-a deplasat. Oprire automată după 1 m de deplasare; grip = oprire imediată.</p>
   </div>
   <div class="note" id="noteLos" hidden>
     <p><b>Cum se face:</b> pe panou apare o hartă văzută de sus, cu un punct roșu care e capul persoanei testate. Pentru fiecare din cele 8 direcții: 3 secunde drept la mijloc, apoi la bipul lung se apleacă încet spre direcția arătată, din glezne, cu corpul drept, <b>fără să ridice tălpile și fără pas</b>, până la cercul exterior (15 cm) sau cât poate în siguranță. Ține poziția, iar la cele două bipuri revine la mijloc.</p>
@@ -354,6 +387,24 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
     <div class="field" style="gap:14px">
       <div class="profile" id="losSummary"></div>
       <div class="table-scroll"><table id="losTable"></table></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="h-adv" id="advSection" hidden>
+  <div class="panel-head"><h2 id="h-adv">Teste avansate</h2><span class="hint">ultimul BESS și ultimul Fukuda</span></div>
+  <div class="grid2" style="align-items:start">
+    <div class="field" style="gap:12px">
+      <h3>BESS</h3>
+      <div id="bessBody" class="empty"><p>Încă niciun test BESS.</p></div>
+    </div>
+    <div class="field" style="gap:12px">
+      <h3>Fukuda</h3>
+      <div id="fukEmpty" class="empty"><p>Încă niciun test Fukuda.</p></div>
+      <div id="fukBody" hidden style="display:grid;gap:12px">
+        <canvas id="fukPlot" class="plot square" width="600" height="600" aria-label="Drumul capului la testul Fukuda, văzut de sus"></canvas>
+        <div class="profile" id="fukSummary"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -412,7 +463,9 @@ function forwardFromQuat(qx, qy, qz, qw) {
   return [fx / n, fz / n];
 }
 // samples: { t:[s], x:[m], z:[m] } ; heading: [fx, fz] direcția privirii la start (orizontal)
-function computeMetrics(samples, heading, skipSec = 2) {
+// pivot > 0: oscilația unui punct de pe axa gâtului, la `pivot` m în spatele ochilor, ca rotirile
+// capului (probele cu capul în mișcare) să nu pară oscilație a corpului
+function computeMetrics(samples, heading, skipSec = 2, pivot = 0) {
   const n = samples.t.length;
   if (n < 10) return null;
   let i0 = 0;
@@ -423,7 +476,11 @@ function computeMetrics(samples, heading, skipSec = 2) {
     let sx = 0, sz = 0, c = 0;
     for (let k = -2; k <= 2; k++) {
       const j = i + k;
-      if (j >= i0 && j < n) { sx += samples.x[j]; sz += samples.z[j]; c++; }
+      if (j >= i0 && j < n) {
+        let px = samples.x[j], pz = samples.z[j];
+        if (pivot && samples.qw) { const [gx, gz] = forwardFromQuat(samples.qx[j], samples.qy[j], samples.qz[j], samples.qw[j]); px -= gx * pivot; pz -= gz * pivot; }
+        sx += px; sz += pz; c++;
+      }
     }
     xs.push(sx / c); zs.push(sz / c); ts.push(samples.t[i]);
   }
@@ -462,6 +519,47 @@ function computeMetrics(samples, heading, skipSec = 2) {
     rangeML_cm: r2((maxM - minM) * 100),
     trace: { ap: ap.map(v => Math.round(v * 10000) / 100), ml: ml.map(v => Math.round(v * 10000) / 100) }   // cm, la 0,1 mm
   };
+}
+// rotirea capului în plan orizontal față de direcția de start, în grade; pozitiv = spre dreapta
+function yawOf(qx, qy, qz, qw, heading) {
+  const [fx, fz] = forwardFromQuat(qx, qy, qz, qw), [hx, hz] = heading;
+  return Math.atan2(fx * -hz + fz * hx, fx * hx + fz * hz) * 180 / Math.PI;
+}
+function yawSeries(samples, heading) {
+  const out = []; let prev = null, off = 0;
+  for (let i = 0; i < samples.t.length; i++) {
+    let y = yawOf(samples.qx[i], samples.qy[i], samples.qz[i], samples.qw[i], heading);
+    if (prev != null) { const d = y + off - prev; if (d > 180) off -= 360; else if (d < -180) off += 360; }
+    y += off; out.push(y); prev = y;
+  }
+  return out;
+}
+// mișcarea capului la probele „capul în mișcare”: amplitudine și frecvență (zero-crossings)
+function headMotion(samples, heading, skipSec = 2) {
+  const yw = yawSeries(samples, heading), t = samples.t;
+  let i0 = 0; while (i0 < t.length && t[i0] - t[0] < skipSec) i0++;
+  const v = yw.slice(i0); if (v.length < 20) return null;
+  const mean = v.reduce((a, b) => a + b, 0) / v.length;
+  let ss = 0, cross = 0;
+  for (let i = 0; i < v.length; i++) { const d = v[i] - mean; ss += d * d; if (i && (v[i - 1] - mean) * d < 0) cross++; }
+  const rms = Math.sqrt(ss / v.length), dur = t[t.length - 1] - t[i0];
+  return { rms_deg: Math.round(rms * 10) / 10, amp_deg: Math.round(rms * Math.SQRT2 * 10) / 10, freq_hz: dur > 0 ? Math.round(cross / 2 / dur * 100) / 100 : 0 };
+}
+// Fukuda: rotirea (media ultimei secunde față de prima), deplasarea și drumul capului
+function fukudaMetrics(samples, heading, steps) {
+  const t = samples.t, n = t.length; if (n < 20) return null;
+  const yw = yawSeries(samples, heading);
+  const win = (from, to) => { const idx = []; for (let i = 0; i < n; i++) if (t[i] >= from && t[i] <= to) idx.push(i); return idx.length ? idx : [from <= t[0] ? 0 : n - 1]; };
+  const a = win(t[0], t[0] + 1), b = win(t[n - 1] - 1, t[n - 1]);
+  const avg = (idx, arr) => idx.reduce((s, i) => s + arr[i], 0) / idx.length;
+  const x0 = avg(a, samples.x), z0 = avg(a, samples.z), x1 = avg(b, samples.x), z1 = avg(b, samples.z);
+  const [fx, fz] = heading, rx = -fz, rz = fx;
+  const proj = (x, z) => [((x - x0) * fx + (z - z0) * fz) * 100, ((x - x0) * rx + (z - z0) * rz) * 100];
+  const [ap, ml] = proj(x1, z1);
+  const path = { ap: [], ml: [] };
+  for (let i = 0; i < n; i += 6) { const [pa, pm] = proj(samples.x[i], samples.z[i]); path.ap.push(Math.round(pa * 10) / 10); path.ml.push(Math.round(pm * 10) / 10); }
+  const r1 = v => Math.round(v * 10) / 10;
+  return { rotation_deg: r1(avg(b, yw) - avg(a, yw)), ap_cm: r1(ap), ml_cm: r1(ml), distance_cm: r1(Math.hypot(ap, ml)), steps, duration_s: r1(t[n - 1] - t[0]), path };
 }
 // rapoarte față de proba de referință (podea, ochi deschiși); valoare mare = oscilează mult mai mult
 function sensoryProfile(trials) {
@@ -502,9 +600,45 @@ const COND = {
   foam_open:   { label: 'Pernă · ochi deschiși', short: 'Pernă, desch.',  color: '--c-foam-open',  eyes: true,
                  panel: ['Pernă · ochii deschiși', 'Urcă pe pernă cu sprijinul însoțitorului.', 'Apoi privește punctul din mijloc.'] },
   foam_closed: { label: 'Pernă · ochi închiși',  short: 'Pernă, închiși', color: '--c-foam-closed', eyes: false,
-                 panel: ['Pernă · ochii închiși', 'Rămâi pe pernă. La bipul LUNG închide ochii.', 'Deschide-i la cele DOUĂ bipuri.'] }
+                 panel: ['Pernă · ochii închiși', 'Rămâi pe pernă. La bipul LUNG închide ochii.', 'Deschide-i la cele DOUĂ bipuri.'] },
+  // avansate
+  tandem_open:   { label: 'Tandem · ochi deschiși', short: 'Tandem, desch.', color: '--c-tandem-open', eyes: true,
+                   panel: ['Tandem · ochii deschiși', 'Dreptul în față, călcâiul lipit de vârf.', 'Privește punctul din mijloc.'] },
+  tandem_closed: { label: 'Tandem · ochi închiși', short: 'Tandem, închiși', color: '--c-tandem-closed', eyes: false,
+                   panel: ['Tandem · ochii închiși', 'Dreptul în față. La bipul LUNG închide ochii.', 'Deschide-i la cele DOUĂ bipuri.'] },
+  leg_r_open:    { label: 'Piciorul drept · ochi deschiși', short: 'Drept, desch.', color: '--c-leg-r-open', eyes: true, type: 'leg',
+                   panel: ['Pe piciorul drept · ochii deschiși', 'Ridică stângul la bipul lung.', 'Dacă îl pui jos: trăgaciul.'] },
+  leg_l_open:    { label: 'Piciorul stâng · ochi deschiși', short: 'Stâng, desch.', color: '--c-leg-l-open', eyes: true, type: 'leg',
+                   panel: ['Pe piciorul stâng · ochii deschiși', 'Ridică dreptul la bipul lung.', 'Dacă îl pui jos: trăgaciul.'] },
+  leg_r_closed:  { label: 'Piciorul drept · ochi închiși', short: 'Drept, închiși', color: '--c-leg-r-closed', eyes: false, type: 'leg',
+                   panel: ['Pe piciorul drept · ochii închiși', 'La bipul lung: stângul sus, ochii închiși.', 'Dacă îl pui jos: trăgaciul.'] },
+  leg_l_closed:  { label: 'Piciorul stâng · ochi închiși', short: 'Stâng, închiși', color: '--c-leg-l-closed', eyes: false, type: 'leg',
+                   panel: ['Pe piciorul stâng · ochii închiși', 'La bipul lung: dreptul sus, ochii închiși.', 'Dacă îl pui jos: trăgaciul.'] },
+  hs_floor:      { label: 'Podea · capul în mișcare', short: 'Cap, podea', color: '--c-hs-floor', eyes: false, type: 'hs', pivot: 0.09,
+                   panel: ['Podea · ochii închiși · capul în mișcare', 'La fiecare bip, capul în cealaltă parte (~15°).', 'Ochii închiși tot timpul.'] },
+  hs_foam:       { label: 'Pernă · capul în mișcare', short: 'Cap, pernă', color: '--c-hs-foam', eyes: false, type: 'hs', pivot: 0.09,
+                   panel: ['Pernă · ochii închiși · capul în mișcare', 'La fiecare bip, capul în cealaltă parte (~15°).', 'Ochii închiși tot timpul.'] },
+  // BESS: 20 s, ochii închiși, mâinile pe șolduri
+  bess_double_firm: { label: 'BESS · podea · picioare lipite', short: 'Podea, lipite', color: '--c-bess', eyes: false, type: 'bess',
+                      panel: ['BESS · podea · picioare lipite', 'Mâinile pe șolduri. Ochii închiși la bipul lung.', 'Dacă te dezechilibrezi, revino și continuă.'] },
+  bess_single_firm: { label: 'BESS · podea · un picior', short: 'Podea, un picior', color: '--c-bess', eyes: false, type: 'bess',
+                      panel: ['BESS · podea · pe piciorul nedominant', 'Mâinile pe șolduri. Ochii închiși la bipul lung.', 'Celălalt picior ridicat, genunchiul îndoit.'] },
+  bess_tandem_firm: { label: 'BESS · podea · tandem', short: 'Podea, tandem', color: '--c-bess', eyes: false, type: 'bess',
+                      panel: ['BESS · podea · tandem', 'Piciorul nedominant în spate.', 'Mâinile pe șolduri. Ochii închiși la bipul lung.'] },
+  bess_double_foam: { label: 'BESS · pernă · picioare lipite', short: 'Pernă, lipite', color: '--c-bess', eyes: false, type: 'bess',
+                      panel: ['BESS · pernă · picioare lipite', 'Urcă pe pernă cu sprijinul însoțitorului.', 'Mâinile pe șolduri. Ochii închiși la bipul lung.'] },
+  bess_single_foam: { label: 'BESS · pernă · un picior', short: 'Pernă, un picior', color: '--c-bess', eyes: false, type: 'bess',
+                      panel: ['BESS · pernă · pe piciorul nedominant', 'Mâinile pe șolduri. Ochii închiși la bipul lung.', 'Celălalt picior ridicat, genunchiul îndoit.'] },
+  bess_tandem_foam: { label: 'BESS · pernă · tandem', short: 'Pernă, tandem', color: '--c-bess', eyes: false, type: 'bess',
+                      panel: ['BESS · pernă · tandem', 'Piciorul nedominant în spate.', 'Mâinile pe șolduri. Ochii închiși la bipul lung.'] }
 };
-const ORDER = ['open', 'closed', 'okn', 'foam_open', 'foam_closed'];
+const BASIC = ['open', 'closed', 'okn', 'foam_open', 'foam_closed'];
+const ADVANCED = ['tandem_open', 'tandem_closed', 'leg_r_open', 'leg_l_open', 'leg_r_closed', 'leg_l_closed', 'hs_floor', 'hs_foam'];
+const ORDER = BASIC.concat(ADVANCED);
+const BESS_ORDER = ['bess_double_firm', 'bess_single_firm', 'bess_tandem_firm', 'bess_double_foam', 'bess_single_foam', 'bess_tandem_foam'];
+const HS_BEAT = 0.5;                       // s între două întoarceri ale capului (un ciclu = 1 s)
+const BESS_DUR = 20, BESS_MAX_ERRORS = 10;
+const FUK_STEPS = 50, FUK_MAX = 60, FUK_BEAT = 0.6, FUK_MAX_DISPLACEMENT = 1.0;   // pași, s, s, m
 const MAX_DISPLACEMENT = 0.20;  // m, probe de balans
 const LOS_MAX_DISPLACEMENT = 0.45; // m, dacă face pas
 const LOS_TARGET = 0.15;        // m
@@ -594,11 +728,12 @@ function loadPrefs() {
     if (p.stance) $('s-stance').value = p.stance;
     if (p.dur) $('s-dur').value = p.dur;
     if (p.metric) $('evoMetric').value = p.metric;
+    if (p.adv) $('k-adv').checked = true;
     if (p.conds) ORDER.forEach(c => { $('c-' + c).checked = p.conds.includes(c); });
   } catch (e) {}
 }
 function savePrefs() {
-  try { localStorage.setItem('je-prefs2', JSON.stringify({ stance: $('s-stance').value, dur: $('s-dur').value, metric: $('evoMetric').value, conds: selectedConds() })); } catch (e) {}
+  try { localStorage.setItem('je-prefs2', JSON.stringify({ stance: $('s-stance').value, dur: $('s-dur').value, metric: $('evoMetric').value, conds: ORDER.filter(c => $('c-' + c).checked), adv: $('k-adv').checked })); } catch (e) {}
 }
 
 // ---------- formular
@@ -615,22 +750,34 @@ function readJournal() {
     observatii: $('j-note').value.trim()
   };
 }
-const testKind = () => $('k-los').checked ? 'los' : 'sway';
-function selectedConds() { return ORDER.filter(c => $('c-' + c).checked); }
-function settings() { return { stance: $('s-stance').value, duration: +$('s-dur').value, conds: selectedConds() }; }
+const testKind = () => (document.querySelector('input[name="kind"]:checked') || {}).value || 'sway';
+function selectedConds() { return ORDER.filter(c => $('c-' + c).checked && (BASIC.includes(c) || $('k-adv').checked)); }
+function settings() {
+  const kind = testKind();
+  if (kind === 'bess') return { stance: null, duration: BESS_DUR, conds: BESS_ORDER.slice() };
+  if (kind === 'fukuda') return { stance: null, duration: FUK_MAX, conds: [], steps: FUK_STEPS, beat_s: FUK_BEAT };
+  return { stance: $('s-stance').value, duration: +$('s-dur').value, conds: selectedConds() };
+}
 
 let xrSupported = false, xrMode = null, running = false;
 function updateStartState() {
+  const adv = $('k-adv').checked;
+  document.querySelectorAll('.adv-only').forEach(el => { el.hidden = !adv; });
+  $('advProbes').hidden = !adv;
+  if (!adv && (testKind() === 'bess' || testKind() === 'fukuda')) $('k-sway').checked = true;
   const kind = testKind();
-  $('probesField').hidden = kind === 'los';
-  $('durField').hidden = kind === 'los';
-  $('noteSway').hidden = kind === 'los';
-  $('noteLos').hidden = kind !== 'los';
   const conds = selectedConds();
-  const total = kind === 'los' ? 8 * (LOS_LEAN + LOS_CENTER) + 15 : conds.length * (+$('s-dur').value + 12);
-  $('durationHint').textContent = (kind === 'los' || conds.length) ? `aprox. ${Math.ceil(total / 60)} min în total` : '';
+  $('probesField').hidden = kind !== 'sway';
+  $('durField').hidden = kind !== 'sway';
+  $('noteSway').hidden = !(kind === 'sway' || kind === 'bess');
+  $('noteAdv').hidden = !(kind === 'sway' && conds.some(c => ADVANCED.includes(c)));
+  $('noteBess').hidden = kind !== 'bess';
+  $('noteFukuda').hidden = kind !== 'fukuda';
+  $('noteLos').hidden = kind !== 'los';
+  const total = kind === 'los' ? 8 * (LOS_LEAN + LOS_CENTER) + 15 : kind === 'bess' ? BESS_ORDER.length * (BESS_DUR + 14) : kind === 'fukuda' ? FUK_STEPS * FUK_BEAT + 20 : conds.length * (+$('s-dur').value + 12);
+  $('durationHint').textContent = (kind !== 'sway' || conds.length) ? `aprox. ${Math.ceil(total / 60)} min în total` : '';
   const safe = $('k-wall').checked && $('k-person').checked && $('k-ok').checked;
-  const okConds = kind === 'los' || conds.length > 0;
+  const okConds = kind !== 'sway' || conds.length > 0;
   let hint = '';
   if (!xrSupported) hint = 'Butonul devine activ când deschizi pagina pe Quest.';
   else if (!okConds) hint = 'Alege cel puțin o probă.';
@@ -654,7 +801,7 @@ function updateStartState() {
   }
   savePrefs();
 }
-['c-open', 'c-closed', 'c-okn', 'c-foam_open', 'c-foam_closed', 'k-wall', 'k-person', 'k-ok', 's-dur', 's-stance', 'k-sway', 'k-los']
+[...ORDER.map(c => 'c-' + c), 'k-wall', 'k-person', 'k-ok', 's-dur', 's-stance', 'k-sway', 'k-los', 'k-bess', 'k-fukuda', 'k-adv']
   .forEach(id => $(id).addEventListener('change', () => { updateStartState(); if (id === 's-stance') renderEvo(); }));
 $('evoMetric').addEventListener('change', () => { savePrefs(); renderEvo(); });
 
@@ -811,13 +958,35 @@ function startCountdown(t) {
 }
 function startRecording(t, tr) {
   const q = tr.orientation;
-  run.rec = { t0: t, start: [tr.position.x, tr.position.z], heading: forwardFromQuat(q.x, q.y, q.z, q.w), s: { t: [], x: [], y: [], z: [], qx: [], qy: [], qz: [], qw: [] } };
+  run.rec = { t0: t, start: [tr.position.x, tr.position.z], heading: forwardFromQuat(q.x, q.y, q.z, q.w), s: { t: [], x: [], y: [], z: [], qx: [], qy: [], qz: [], qw: [] },
+              nextBeat: t + HS_BEAT, beatN: 0, errors: 0, lastErrT: -9 };
   run.phase = 'record';
   sndStart();
-  const c = run.conds[run.idx];
+  const c = run.conds[run.idx], type = COND[c].type;
   if (c === 'okn') { panel.visible = false; dot.visible = false; }
   else if (COND[c].eyes) { dot.visible = true; drawPanel('', [], ''); }
-  else { dot.visible = false; drawPanel('Ochii închiși', ['Stai fără să te miști.', 'Deschide ochii la cele două bipuri.']); }
+  else {
+    dot.visible = false;
+    const lines = type === 'hs' ? ['La fiecare bip, capul în cealaltă parte.', 'Ochii închiși tot timpul.']
+      : type === 'bess' ? ['Mâinile pe șolduri.', 'Dacă te dezechilibrezi, revino și continuă.']
+      : type === 'leg' ? ['Stai într-un picior.', 'Dacă pui piciorul jos: trăgaciul.']
+      : ['Stai fără să te miști.', 'Deschide ochii la cele două bipuri.'];
+    drawPanel('Ochii închiși', lines);
+  }
+}
+// într-un picior: piciorul a atins podeaua (trăgaciul sau însoțitorul) = sfârșitul probei
+function legTouch() {
+  if (run.phase !== 'record' || !run.rec || COND[run.conds[run.idx]].type !== 'leg') return;
+  const el = run.lastT - run.rec.t0;
+  sndEnd(); finishTrial(false, `piciorul jos la ${el.toFixed(1)} s`, { hold_s: Math.round(el * 10) / 10, touched: true });
+  afterTrial('Notat: piciorul a atins podeaua.');
+}
+// BESS: o greșeală (trăgaciul, însoțitorul sau un pas mare văzut de cască)
+function bessError() {
+  if (run.phase !== 'record' || !run.rec || COND[run.conds[run.idx]].type !== 'bess') return;
+  run.rec.errors = Math.min(BESS_MAX_ERRORS, run.rec.errors + 1);
+  run.rec.lastErrT = run.lastT - run.rec.t0;
+  beep(440, 0.08);
 }
 function pushSample(t, tr) {
   const s = run.rec.s, p = tr.position, q = tr.orientation;
@@ -826,10 +995,14 @@ function pushSample(t, tr) {
   s.x.push(r4(p.x)); s.y.push(r4(p.y)); s.z.push(r4(p.z));
   s.qx.push(r4(q.x)); s.qy.push(r4(q.y)); s.qz.push(r4(q.z)); s.qw.push(r4(q.w));
 }
-function finishTrial(stopped, reason) {
-  const c = run.conds[run.idx], rec = run.rec;
-  const metrics = rec ? computeMetrics(rec.s, rec.heading) : null;
-  run.trials.push({ cond: c, stopped: !!stopped, reason: reason || '', heading: rec ? rec.heading : null, samples: rec ? rec.s : null, metrics });
+function finishTrial(stopped, reason, extra = {}) {
+  const c = run.conds[run.idx], rec = run.rec, info = COND[c];
+  const metrics = rec ? computeMetrics(rec.s, rec.heading, 2, info.pivot || 0) : null;
+  const trial = { cond: c, stopped: !!stopped, reason: reason || '', heading: rec ? rec.heading : null, samples: rec ? rec.s : null, metrics };
+  if (info.type === 'leg') { trial.hold_s = extra.hold_s ?? (rec && rec.s.t.length ? Math.round(rec.s.t[rec.s.t.length - 1] * 10) / 10 : 0); trial.touched = !!extra.touched; }
+  if (info.type === 'bess') trial.errors = stopped ? BESS_MAX_ERRORS : (rec ? rec.errors : 0);
+  if (info.type === 'hs' && rec) trial.head = headMotion(rec.s, rec.heading);
+  run.trials.push(trial);
   run.rec = null;
   stripes.visible = false; dot.visible = false; panel.visible = true;
 }
@@ -851,9 +1024,18 @@ function swayFrame(t, tr) {
     if (t >= run.countEnd) startRecording(t, tr);
   } else if (run.phase === 'record') {
     pushSample(t, tr);
-    const el = t - run.rec.t0;
+    const el = t - run.rec.t0, type = COND[run.conds[run.idx]].type;
+    if (type === 'hs' && t >= run.rec.nextBeat) { beep(run.rec.beatN % 2 ? 660 : 880, 0.06); run.rec.beatN++; run.rec.nextBeat += HS_BEAT; }
     const d = Math.hypot(tr.position.x - run.rec.start[0], tr.position.z - run.rec.start[1]);
-    if (d > MAX_DISPLACEMENT && el > 0.5) {
+    if (d > MAX_DISPLACEMENT && el > 0.5 && type === 'bess') {
+      // un pas: e o greșeală, iar proba continuă de unde a revenit
+      if (el - run.rec.lastErrT > 2) bessError();
+      run.rec.start = [tr.position.x, tr.position.z];
+    } else if (d > MAX_DISPLACEMENT && el > 0.5 && type === 'leg') {
+      sndEnd(); finishTrial(false, `dezechilibru mare la ${el.toFixed(1)} s`, { hold_s: Math.round(el * 10) / 10, touched: true });
+      afterTrial('Notat: dezechilibru mare.');
+      return;
+    } else if (d > MAX_DISPLACEMENT && el > 0.5) {
       sndStop();
       finishTrial(true, `deplasare peste 20 cm la ${el.toFixed(1)} s`);
       afterTrial('Proba s-a oprit: s-a mișcat mult. Se notează.');
@@ -932,36 +1114,95 @@ function losFrame(t, tr) {
   } else if (run.phase === 'done' && t >= run.doneAt) endRun();
 }
 
+// ---------- flux: Fukuda (pași pe loc cu ochii închiși)
+function fukReady() {
+  run.phase = 'ready';
+  panel.visible = true; dot.visible = false; stripes.visible = false;
+  if (run.lastPose) placePanel(run.lastPose);
+  drawPanel('Fukuda: 50 de pași pe loc', ['Brațele întinse înainte.', 'La bipul lung: ochii închiși, pași în ritmul bipurilor.', 'Nu corecta direcția. Grip = oprire.', 'Apasă trăgaciul când ești gata.']);
+}
+function fukFrame(t, tr) {
+  const F = run.fuk;
+  if (run.phase === 'countdown') {
+    const left = Math.ceil(run.countEnd - t);
+    if (left !== run.lastTick && left > 0) { run.lastTick = left; sndTick(); drawPanel('Pregătește-te', ['Brațele întinse înainte.'], String(left)); placePanel(tr); }
+    if (t >= run.countEnd) {
+      const q = tr.orientation;
+      run.rec = { t0: t, start: [tr.position.x, tr.position.z], heading: forwardFromQuat(q.x, q.y, q.z, q.w), s: { t: [], x: [], y: [], z: [], qx: [], qy: [], qz: [], qw: [] }, nextBeat: t + FUK_BEAT };
+      F.steps = 0; F.up = false; F.yMin = tr.position.y; F.yMax = tr.position.y;
+      run.phase = 'record'; sndStart();
+      drawPanel('Ochii închiși', ['Pași pe loc, în ritmul bipurilor.', 'Grip = oprire imediată.']);
+    }
+  } else if (run.phase === 'record') {
+    pushSample(t, tr);
+    const el = t - run.rec.t0;
+    if (t >= run.rec.nextBeat) { beep(740, 0.05); run.rec.nextBeat += FUK_BEAT; }
+    countStep(F, tr.position.y);
+    const d = Math.hypot(tr.position.x - run.rec.start[0], tr.position.z - run.rec.start[1]);
+    if (d > FUK_MAX_DISPLACEMENT) { sndStop(); fukFinish(true, `deplasare peste 1 m la ${el.toFixed(1)} s`); return; }
+    if (F.steps >= FUK_STEPS || el >= FUK_MAX) { sndEnd(); fukFinish(false, F.steps >= FUK_STEPS ? '' : `${F.steps} pași în ${FUK_MAX} s`); }
+  } else if (run.phase === 'done' && t >= run.doneAt) endRun();
+}
+// un pas = o oscilație a capului în sus și în jos de cel puțin 6 mm (cu histerezis)
+function countStep(F, y) {
+  const H = 0.006;
+  if (!F.up) { F.yMin = Math.min(F.yMin, y); if (y - F.yMin > H) { F.up = true; F.yMax = y; } }
+  else { F.yMax = Math.max(F.yMax, y); if (F.yMax - y > H) { F.up = false; F.yMin = y; F.steps++; } }
+}
+function fukFinish(stopped, reason) {
+  const rec = run.rec;
+  const m = rec ? fukudaMetrics(rec.s, rec.heading, run.fuk.steps) : null;
+  run.fuk.result = m ? { ...m, stopped: !!stopped, reason: reason || '' } : null;
+  run.rec = null; run.phase = 'done'; run.doneAt = run.lastT + 3;
+  panel.visible = true; drawPanel('Gata', ['Deschide ochii.', 'Rezultatele apar pe pagină.']);
+}
+
 // ---------- evenimente XR comune
 function onSelect() {
+  if (run.phase === 'record' && run.rec && run.kind !== 'los' && run.kind !== 'fukuda') {
+    const type = COND[run.conds[run.idx]].type;
+    if (type === 'leg') legTouch(); else if (type === 'bess') bessError();
+    return;
+  }
   if (run.phase !== 'ready') return;
   if (run.kind === 'los') { run.los.t0 = run.lastT; losStartCenter(run.lastT); }
+  else if (run.kind === 'fukuda') { run.phase = 'countdown'; run.countEnd = run.lastT + 3; run.lastTick = -1; }
   else startCountdown(run.lastT);
 }
 function onSqueeze() {
   if (!running) return;
-  if (run.kind === 'sway' && run.phase === 'record') finishTrial(true, 'oprit manual');
+  if ((run.kind === 'sway' || run.kind === 'bess') && run.phase === 'record') finishTrial(true, 'oprit manual');
+  if (run.kind === 'fukuda' && run.phase === 'record') fukFinish(true, 'oprit manual');
   run.phase = 'aborted';
   sndStop();
   endRun('Test oprit cu butonul grip.');
 }
 function onFrame(t, tr) {
   run.lastPose = tr; run.lastT = t;
-  if (run.kind === 'los') losFrame(t, tr); else swayFrame(t, tr);
+  if (run.kind === 'los') losFrame(t, tr); else if (run.kind === 'fukuda') fukFrame(t, tr); else swayFrame(t, tr);
   if (link.open && link.role === 'host' && (run.liveTick = (run.liveTick || 0) + 1) % 7 === 0) linkSend({ t: 'live', st: liveState(tr) });
 }
 // ce vede calculatorul: faza, proba, secundele rămase și poziția capului față de start (cm)
 function liveState(tr) {
   if (!running) return { running: false };
   const st = { running, kind: run.kind, phase: run.phase, idx: run.idx, n: run.kind === 'los' ? LOS_DIRS.length : run.conds.length };
-  if (run.kind === 'los') {
+  if (run.kind === 'fukuda') {
+    st.n = 1; st.idx = 0; st.label = 'Fukuda'; st.steps = run.fuk.steps || 0;
+    if (run.phase === 'record' && run.rec && tr) {
+      const dx = tr.position.x - run.rec.start[0], dz = tr.position.z - run.rec.start[1], [fx, fz] = run.rec.heading, q = tr.orientation;
+      st.ap = (dx * fx + dz * fz) * 100; st.ml = (dx * -fz + dz * fx) * 100;
+      st.yaw = yawOf(q.x, q.y, q.z, q.w, run.rec.heading);
+      st.elapsed = Math.floor(run.lastT - run.rec.t0);
+    } else if (run.phase === 'countdown') st.secLeft = Math.max(0, Math.ceil(run.countEnd - run.lastT));
+  } else if (run.kind === 'los') {
     const L = run.los, i = Math.min(L.idx, LOS_DIRS.length - 1);
     st.idx = L.idx; st.dir = i; st.label = LOS_DIRS[i].name; st.maxes = L.maxes;
     if (L.center && tr) Object.assign(st, losRel(tr));
     if (run.phase === 'los_center' || run.phase === 'los_lean') st.secLeft = Math.max(0, Math.ceil(L.phaseEnd - run.lastT));
   } else {
     const c = run.conds[run.idx];
-    st.label = c ? COND[c].label : '';
+    st.label = c ? COND[c].label : ''; st.type = c ? COND[c].type || '' : '';
+    if (run.rec) st.errors = run.rec.errors || 0;
     if (run.phase === 'record' && run.rec && tr) {
       const dx = tr.position.x - run.rec.start[0], dz = tr.position.z - run.rec.start[1], [fx, fz] = run.rec.heading;
       st.ap = (dx * fx + dz * fz) * 100; st.ml = (dx * -fz + dz * fx) * 100;
@@ -983,6 +1224,7 @@ async function startXR() {
   run.conds = s.conds; run.idx = 0; run.trials = []; run.dur = s.duration;
   run.journal = readJournal(); run.settings = s; run.phase = 'idle'; run.lastPose = null; run.frameNo = 0;
   run.los = run.kind === 'los' ? { idx: 0, center: null, heading: null, results: [], maxes: new Array(8).fill(null), trace: { t: [], ap: [], ml: [], dir: [] }, t0: 0 } : null;
+  run.fuk = run.kind === 'fukuda' ? { steps: 0, result: null } : null;
   let session;
   try { session = await navigator.xr.requestSession(xrMode, { optionalFeatures: ['local'] }); }
   catch (e) { toast('Nu am putut porni sesiunea VR: ' + (e.message || e)); return; }
@@ -1002,7 +1244,7 @@ async function startXR() {
       const ref = renderer.xr.getReferenceSpace();
       const pose = ref && frame.getViewerPose(ref);
       if (pose) {
-        if (!placed) { placed = true; run.lastPose = pose.transform; run.lastT = t; run.kind === 'los' ? losReady() : showReady(); }
+        if (!placed) { placed = true; run.lastPose = pose.transform; run.lastT = t; run.kind === 'los' ? losReady() : run.kind === 'fukuda' ? fukReady() : showReady(); }
         onFrame(t, pose.transform);
       }
     }
@@ -1014,12 +1256,13 @@ async function startXR() {
 async function endRun(message, sessionAlreadyEnded) {
   if (!running) return;
   running = false;
-  if (run.kind === 'sway' && run.phase === 'record') finishTrial(true, 'sesiune întreruptă');
+  if ((run.kind === 'sway' || run.kind === 'bess') && run.phase === 'record') finishTrial(true, 'sesiune întreruptă');
+  if (run.kind === 'fukuda' && run.phase === 'record') fukFinish(true, 'sesiune întreruptă');
   run.phase = 'idle';
   try { renderer.setAnimationLoop(null); } catch (e) {}
   if (!sessionAlreadyEnded && run.session) { try { await run.session.end(); } catch (e) {} }
   run.session = null;
-  const hasData = run.kind === 'los' ? run.los.results.length > 0 : run.trials.length > 0;
+  const hasData = run.kind === 'los' ? run.los.results.length > 0 : run.kind === 'fukuda' ? !!(run.fuk && run.fuk.result) : run.trials.length > 0;
   if (hasData) { const saved = await saveSession({ simulated: false }); toast(saved ? (message || 'Test salvat.') : 'Test de probă: rezultatul nu s-a salvat.'); }
   else if (message) toast(message);
   updateStartState();
@@ -1037,9 +1280,10 @@ async function saveSession({ simulated }) {
     device: simulated ? 'simulare' : (navigator.userAgent.includes('Quest') ? 'Meta Quest' : 'WebXR'),
     journal: run.journal,
     settings: run.kind === 'los' ? { stance: run.settings.stance, target_cm: LOS_TARGET * 100, lean_s: LOS_LEAN } : run.settings,
-    trials: run.kind === 'los' ? [] : run.trials
+    trials: run.kind === 'los' || run.kind === 'fukuda' ? [] : run.trials
   };
   if (run.kind === 'los') sess.los = { dirs: run.los.results, trace: run.los.trace };
+  if (run.kind === 'fukuda') sess.fukuda = run.fuk.result;
   if ($('j-practice').checked) { sess.practice = true; practiceSessions.push(sess); await renderAll(); return false; }
   await dbPut(sess);
   await renderAll();
@@ -1049,7 +1293,9 @@ async function saveSession({ simulated }) {
 // ---------- simulare (pentru verificare pe PC)
 function gauss() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
 function simulateTrial(cond, dur) {
-  const amp = { open: 1, closed: 1.6, okn: 1.4, foam_open: 1.8, foam_closed: 3.4 }[cond] * (0.8 + Math.random() * 0.4);
+  const amp = { open: 1, closed: 1.6, okn: 1.4, foam_open: 1.8, foam_closed: 3.4, tandem_open: 1.7, tandem_closed: 2.6,
+    leg_r_open: 2.2, leg_l_open: 2.3, leg_r_closed: 3.6, leg_l_closed: 3.8, hs_floor: 2.0, hs_foam: 4.0,
+    bess_double_firm: 1.5, bess_single_firm: 3.2, bess_tandem_firm: 2.6, bess_double_foam: 2.8, bess_single_foam: 4.5, bess_tandem_foam: 4.0 }[cond] * (0.8 + Math.random() * 0.4);
   const hz = 72, n = Math.round(dur * hz);
   const s = { t: [], x: [], y: [], z: [], qx: [], qy: [], qz: [], qw: [] };
   let vx = 0, vz = 0, x = 0, z = 0;
@@ -1062,8 +1308,19 @@ function simulateTrial(cond, dur) {
     s.x.push(r4(x + gauss() * 0.00006)); s.y.push(r4(gauss() * 0.0005)); s.z.push(r4(z + gauss() * 0.00006));
     s.qx.push(0); s.qy.push(0); s.qz.push(0); s.qw.push(1);
   }
-  const heading = [0, -1];
-  return { cond, stopped: false, reason: '', heading, samples: s, metrics: computeMetrics(s, heading) };
+  const heading = [0, -1], type = COND[cond].type;
+  const trial = { cond, stopped: false, reason: '', heading, samples: s, metrics: computeMetrics(s, heading) };
+  if (type === 'leg') { trial.hold_s = COND[cond].eyes ? dur : Math.round(Math.min(dur, 8 + Math.random() * 25) * 10) / 10; trial.touched = trial.hold_s < dur; }
+  if (type === 'bess') trial.errors = Math.min(BESS_MAX_ERRORS, Math.floor(Math.random() * (cond.includes('single') ? 6 : cond.includes('foam') ? 4 : 2)));
+  if (type === 'hs') trial.head = { rms_deg: Math.round((9 + Math.random() * 3) * 10) / 10, amp_deg: Math.round((13 + Math.random() * 4) * 10) / 10, freq_hz: Math.round((0.85 + Math.random() * 0.2) * 100) / 100 };
+  return trial;
+}
+function simulateFukuda() {
+  const rot = (Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 30), dist = 10 + Math.random() * 40, ang = (Math.random() - 0.5) * 2;
+  const path = { ap: [], ml: [] };
+  for (let i = 0; i <= 50; i++) { const f = i / 50; path.ap.push(Math.round((Math.cos(ang) * dist * f + gauss() * 1.2) * 10) / 10); path.ml.push(Math.round((Math.sin(ang) * dist * f + gauss() * 1.2) * 10) / 10); }
+  const r1 = v => Math.round(v * 10) / 10, n = path.ap.length - 1;
+  return { rotation_deg: r1(rot), ap_cm: path.ap[n], ml_cm: path.ml[n], distance_cm: r1(Math.hypot(path.ap[n], path.ml[n])), steps: FUK_STEPS, duration_s: r1(FUK_STEPS * FUK_BEAT), path, stopped: false, reason: '' };
 }
 function simulateLos() {
   // profil generic, ușor asimetric, doar ca să se vadă cum arată graficul
@@ -1074,6 +1331,7 @@ async function runSimulation() {
   run.kind = testKind();
   run.journal = readJournal(); run.settings = settings();
   if (run.kind === 'los') { run.los = { results: simulateLos(), trace: null }; run.trials = []; }
+  else if (run.kind === 'fukuda') { run.fuk = { result: simulateFukuda() }; run.trials = []; }
   else run.trials = run.settings.conds.map(c => simulateTrial(c, run.settings.duration));
   const saved = await saveSession({ simulated: true });
   toast(saved ? 'Simulare salvată (marcată ca simulare).' : 'Simulare de probă: nu s-a salvat.');
@@ -1093,7 +1351,7 @@ async function renderAll() {
   else allSessions = (await dbAll()).concat(practiceSessions);
   allSessions.sort((a, b) => a.date.localeCompare(b.date));
   sessions = allSessions.filter(s => profileOf(s) === curProfile());
-  renderLast(); renderLos(); renderEvo();
+  renderLast(); renderLos(); renderAdv(); renderEvo();
   if (link.role === 'host') linkSend({ t: 'sessions', list: liteSessions(allSessions) });
 }
 const savedSessions = () => sessions.filter(s => !s.practice);
@@ -1133,7 +1391,8 @@ function renderLast() {
     profileCard(pr.romberg, 'Fără vedere', 'Podea, ochi închiși. Cât de mult se bazează echilibrul pe ochi.', false, rr('romberg')) +
     profileCard(pr.foam, 'Fără sprijinul tălpilor', 'Pernă, ochi deschiși. Cât contează sensibilitatea din picioare.', false, rr('foam')) +
     profileCard(pr.vestibular, 'Doar urechea internă', 'Pernă, ochi închiși. Corespunde condiției 5 de la posturografie.', true, rr('vestibular')) +
-    (pr.okn ? profileCard(pr.okn, 'Vedere înșelătoare', 'Dungi în mișcare. Cât perturbă echilibrul mișcarea din jur.', false, rr('okn')) : '');
+    (pr.okn ? profileCard(pr.okn, 'Vedere înșelătoare', 'Dungi în mișcare. Cât perturbă echilibrul mișcarea din jur.', false, rr('okn')) : '') +
+    advCards(last.trials, last.settings?.duration);
   $('refNote').hidden = !ra;
   if (ra) $('refNote').textContent = ra.n ? `Sub cifre: media lui ${ra.name} din ${ra.n} ${ra.n === 1 ? 'test real' : 'teste reale'}, cu aceeași poziție a picioarelor.` : `${ra.name} nu are încă teste reale cu aceeași poziție a picioarelor.`;
 
@@ -1171,12 +1430,84 @@ function renderLast() {
 
   const rows = last.trials.map(tr => {
     const m = tr.metrics || {};
+    const note = trialNote(tr, last.settings?.duration);
     const st = tr.stopped ? `<span class="pill bad" title="${esc(tr.reason)}">oprită</span>` : '<span class="pill">completă</span>';
     return `<tr><td><span class="sw" style="background:var(${COND[tr.cond].color})"></span>${COND[tr.cond].label}</td>
       <td class="num key">${fmt(m.rmsML_cm, 2)}</td><td class="num">${fmt(m.rmsAP_cm, 2)}</td>
-      <td class="num">${fmt(m.velocity_cms, 2)}</td><td class="num">${fmt(m.area95_cm2, 1)}</td><td class="num">${fmt(m.duration_s, 0)}</td><td>${st}</td></tr>`;
+      <td class="num">${fmt(m.velocity_cms, 2)}</td><td class="num">${fmt(m.area95_cm2, 1)}</td><td class="num">${fmt(m.duration_s, 0)}</td><td>${st}</td><td>${note}</td></tr>`;
   }).join('');
-  $('lastTable').innerHTML = `<thead><tr><th>Probă</th><th class="num key">Lateral cm</th><th class="num">Față–spate cm</th><th class="num">Viteză cm/s</th><th class="num">Arie cm²</th><th class="num">Sec.</th><th>Stare</th></tr></thead><tbody>${rows}</tbody>`;
+  $('lastTable').innerHTML = `<thead><tr><th>Probă</th><th class="num key">Lateral cm</th><th class="num">Față–spate cm</th><th class="num">Viteză cm/s</th><th class="num">Arie cm²</th><th class="num">Sec.</th><th>Stare</th><th>Notă</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// probele avansate: o notă pe rând și câteva carduri sub profilul senzorial
+function trialNote(tr, dur) {
+  const info = COND[tr.cond] || {};
+  if (info.type === 'leg') return tr.hold_s == null ? '' : (tr.touched ? `a ținut ${fmt(tr.hold_s, 1)} s` : `a ținut toate cele ${fmt(tr.hold_s, 0)} s`);
+  if (info.type === 'hs') return tr.head ? `cap ±${fmt(tr.head.amp_deg, 0)}° · ${fmt(tr.head.freq_hz, 2)} Hz` : '';
+  if (info.type === 'bess') return `${tr.errors ?? 0} greșeli`;
+  return '';
+}
+function advCards(trials, dur) {
+  const get = c => trials.find(t => t.cond === c);
+  const vel = t => t && !t.stopped && t.metrics ? t.metrics.velocity_cms : null;
+  const ratio = (a, b) => { const x = vel(get(a)), y = vel(get(b)); return x && y ? { value: Math.round(x / y * 100) / 100 } : (get(a)?.stopped ? { stopped: true } : null); };
+  let html = '';
+  const tc = get('tandem_closed') ? 'tandem_closed' : get('tandem_open') ? 'tandem_open' : null;
+  if (tc) html += profileCard(ratio(tc, 'open'), 'Tandem', `${tc === 'tandem_closed' ? 'Ochi închiși' : 'Ochi deschiși'}, față de podea cu ochii deschiși. Baza îngustă scoate la iveală oscilația laterală.`);
+  const legs = ['leg_r_closed', 'leg_l_closed'].some(c => get(c)) ? ['leg_r_closed', 'leg_l_closed'] : ['leg_r_open', 'leg_l_open'];
+  if (legs.some(c => get(c))) {
+    const h = c => get(c)?.hold_s;
+    html += `<div class="prof"><span class="lbl">Într-un picior</span><span class="v">${fmt(h(legs[0]), 1)} / ${fmt(h(legs[1]), 1)}<small> s</small></span><p>Dreptul / stângul, ${legs[0].endsWith('closed') ? 'ochi închiși' : 'ochi deschiși'}: cât a ținut, din ${fmt(dur, 0)} s.</p></div>`;
+  }
+  const hs = get('hs_foam') ? ['hs_foam', 'foam_closed', 'pe pernă'] : get('hs_floor') ? ['hs_floor', 'closed', 'pe podea'] : null;
+  if (hs) {
+    const hm = get(hs[0]).head;
+    html += profileCard(ratio(hs[0], hs[1]), 'Cap în mișcare', `De câte ori crește oscilația ${hs[2]} când se mișcă și capul, față de aceeași probă cu capul nemișcat${hm ? ` (cap ±${fmt(hm.amp_deg, 0)}° la ${fmt(hm.freq_hz, 2)} Hz; ținta: ±15° la 1 Hz)` : ''}.`);
+  }
+  return html;
+}
+
+// BESS și Fukuda: ultimul test, comparat cu cel dinainte
+function renderAdv() {
+  const bess = sessions.filter(s => kindOf(s) === 'bess'), fuk = sessions.filter(s => kindOf(s) === 'fukuda');
+  $('advSection').hidden = !bess.length && !fuk.length;
+  const bl = bess[bess.length - 1], bp = bess[bess.length - 2];
+  if (bl) {
+    const total = s => s.trials.reduce((a, t) => a + (t.errors || 0), 0);
+    const by = (s, c) => s?.trials.find(t => t.cond === c);
+    $('bessBody').className = '';
+    $('bessBody').innerHTML = `<div class="profile"><div class="prof key"><span class="tag">scor BESS</span><span class="lbl">${esc(fmtDate(bl.date))}${bl.simulated ? ' · simulare' : ''}${bl.practice ? ' · test de probă' : ''}</span><span class="v">${total(bl)}<small> greșeli${bp ? ` (anterior ${total(bp)})` : ''}</small></span><p>Suma celor 6 probe; mai puțin = mai bine.</p></div></div>` +
+      `<div class="table-scroll"><table><thead><tr><th>Probă</th><th class="num">Greșeli</th><th class="num">Anterior</th></tr></thead><tbody>` +
+      BESS_ORDER.map(c => `<tr><td>${COND[c].label.replace('BESS · ', '')}${by(bl, c)?.stopped ? ' <span class="pill bad">oprită</span>' : ''}</td><td class="num">${by(bl, c)?.errors ?? '–'}</td><td class="num">${by(bp, c)?.errors ?? '–'}</td></tr>`).join('') + '</tbody></table></div>';
+  } else { $('bessBody').className = 'empty'; $('bessBody').innerHTML = '<p>Încă niciun test BESS.</p>'; }
+  const fl = fuk[fuk.length - 1], fp = fuk[fuk.length - 2];
+  $('fukEmpty').hidden = !!fl; $('fukBody').hidden = !fl;
+  if (!fl || !fl.fukuda) return;
+  const F = fl.fukuda, P = fp?.fukuda;
+  const side = r => r == null ? '–' : `${fmt(Math.abs(r), 0)}° spre ${r >= 0 ? 'dreapta' : 'stânga'}`;
+  $('fukSummary').innerHTML =
+    `<div class="prof key"><span class="tag">rotire</span><span class="lbl">${esc(fmtDate(fl.date))}${fl.simulated ? ' · simulare' : ''}</span><span class="v">${side(F.rotation_deg)}</span><p>Cât s-a rotit corpul la finalul pașilor.${P ? ` Anterior: ${side(P.rotation_deg)}.` : ''}</p></div>` +
+    `<div class="prof"><span class="lbl">Deplasare</span><span class="v">${fmt(F.distance_cm, 0)}<small> cm</small></span><p>Înainte ${fmt(F.ap_cm, 0)} cm, ${F.ml_cm >= 0 ? 'dreapta' : 'stânga'} ${fmt(Math.abs(F.ml_cm), 0)} cm · ${F.steps} pași în ${fmt(F.duration_s, 0)} s${F.stopped ? ' · oprit: ' + esc(F.reason) : ''}.</p></div>`;
+  const cv = $('fukPlot'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2;
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
+  let maxR = 50; [F, P].forEach(f => f && f.path && f.path.ap.forEach((a, i) => { maxR = Math.max(maxR, Math.abs(a), Math.abs(f.path.ml[i])); }));
+  const half = Math.ceil(maxR / 25) * 25, k = (W / 2 - 40) / half;
+  ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  for (let v = 25; v <= half; v += 25) { ctx.beginPath(); ctx.arc(cx, cy, v * k, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.fillStyle = css('--muted'); ctx.font = '22px "IBM Plex Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('înainte', cx, 28);
+  ctx.textAlign = 'left'; ctx.fillText('cercuri la 25 cm', 14, H - 14);
+  const drawPath = (f, color, dash) => {
+    if (!f || !f.path) return;
+    ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.setLineDash(dash || []); ctx.beginPath();
+    f.path.ap.forEach((a, i) => { const x = cx + f.path.ml[i] * k, y = cy - a * k; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke(); ctx.setLineDash([]);
+    const n = f.path.ap.length - 1, ex = cx + f.path.ml[n] * k, ey = cy - f.path.ap[n] * k, a = f.rotation_deg * Math.PI / 180;
+    ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + Math.sin(a) * 50, ey - Math.cos(a) * 50); ctx.lineWidth = 5; ctx.stroke();
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex + Math.sin(a) * 50, ey - Math.cos(a) * 50, 8, 0, Math.PI * 2); ctx.fill();
+  };
+  drawPath(P, css('--muted'), [10, 8]);
+  drawPath(F, css('--accent'));
+  ctx.fillStyle = css('--ink'); ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
 }
 
 function drawLosShape(ctx, dirs, cx, cy, k, style) {
@@ -1245,15 +1576,18 @@ function renderEvo() {
   const rowsHtml = savedSessions().reverse().map(s => {
     const j = s.journal || {};
     const tail = `<td class="num">${j.instabilitate ?? '–'}</td><td class="num">${j.ameteala ?? '–'}</td><td>${j.perioada_grea ? '<span class="pill bad">da</span>' : 'nu'}</td><td><button class="small danger" data-del="${esc(s.id)}">Șterge</button></td>`;
-    const date = `<td>${fmtDate(s.date)}${s.simulated ? ' <span class="pill">simulare</span>' : ''}</td><td>${kindOf(s) === 'los' ? 'aplecări' : 'balans'} · ${esc(s.settings?.stance || '–')}</td>`;
+    const kindLabel = { los: 'aplecări', bess: 'BESS', fukuda: 'Fukuda' }[kindOf(s)] || 'balans';
+    const date = `<td>${fmtDate(s.date)}${s.simulated ? ' <span class="pill">simulare</span>' : ''}</td><td>${kindLabel}${s.settings?.stance ? ' · ' + esc(s.settings.stance) : ''}</td>`;
+    if (kindOf(s) === 'bess') return `<tr>${date}<td colspan="5">${s.trials.reduce((a, t) => a + (t.errors || 0), 0)} greșeli în 6 probe</td>${tail}</tr>`;
+    if (kindOf(s) === 'fukuda') { const F = s.fukuda || {}; return `<tr>${date}<td colspan="5">rotire ${fmt(Math.abs(F.rotation_deg), 0)}° ${F.rotation_deg >= 0 ? 'dreapta' : 'stânga'} · deplasare ${fmt(F.distance_cm, 0)} cm · ${F.steps ?? '–'} pași</td>${tail}</tr>`; }
     if (kindOf(s) === 'los') {
       const L = losSummary(s.los.dirs);
       return `<tr>${date}<td colspan="5">aria ${fmt(L.area_cm2, 0)} cm² · stânga ${fmt(L.left)} / dreapta ${fmt(L.right)} cm</td>${tail}</tr>`;
     }
     const v = c => { const t = s.trials.find(x => x.cond === c); if (!t) return '–'; if (t.stopped) return 'oprită'; return t.metrics ? fmt(t.metrics.rmsML_cm, 2) : '–'; };
-    return `<tr>${date}${ORDER.map(c => `<td class="num">${v(c)}</td>`).join('')}${tail}</tr>`;
+    return `<tr>${date}${BASIC.map(c => `<td class="num">${v(c)}</td>`).join('')}${tail}</tr>`;
   }).join('');
-  $('histTable').innerHTML = `<thead><tr><th>Data</th><th>Tip</th>${ORDER.map(c => `<th class="num">${COND[c].short}</th>`).join('')}<th class="num">Nesig.</th><th class="num">Amețeală</th><th>Zi grea</th><th></th></tr></thead><tbody>${rowsHtml}</tbody>`;
+  $('histTable').innerHTML = `<thead><tr><th>Data</th><th>Tip</th>${BASIC.map(c => `<th class="num">${COND[c].short}</th>`).join('')}<th class="num">Nesig.</th><th class="num">Amețeală</th><th>Zi grea</th><th></th></tr></thead><tbody>${rowsHtml}</tbody>`;
   if (!list.length) return;
 
   // serii
@@ -1345,21 +1679,27 @@ $('btnCsv').addEventListener('click', () => {
   if (!sessions.length) { toast('Nu există încă teste.'); return; }
   const head = ['data', 'persoana', 'tip_test', 'simulare', 'picioare', 'nesiguranta_0_10', 'ameteala_0_10', 'somn_ore', 'zi_mai_grea', 'durere_cap', 'observatii',
     'proba', 'oprita', 'motiv_oprire', 'durata_analizata_s', 'viteza_cm_s', 'traseu_cm', 'arie95_cm2', 'rms_fata_spate_cm', 'rms_lateral_cm', 'amplitudine_fata_spate_cm', 'amplitudine_lateral_cm',
-    'raport_fara_vedere', 'raport_pe_perna', 'raport_doar_ureche_interna', 'limita_aplecare_cm'];
+    'raport_fara_vedere', 'raport_pe_perna', 'raport_doar_ureche_interna', 'limita_aplecare_cm',
+    'tinut_s', 'greseli', 'cap_amplitudine_grade', 'cap_frecventa_hz', 'fukuda_rotire_grade', 'fukuda_deplasare_cm', 'fukuda_pasi'];
   const lines = [head.join(',')];
   const pv = p => p == null ? '' : p.stopped ? 'oprita' : p.value;
   sessions.forEach(s => {
     const j = s.journal || {};
-    const common = [s.date, profileName(profileOf(s)), kindOf(s) === 'los' ? 'limite stabilitate' : 'balans', s.simulated ? 'da' : 'nu', s.settings?.stance, j.instabilitate, j.ameteala, j.somn_ore, j.perioada_grea ? 'da' : 'nu', j.durere_cap ? 'da' : 'nu', j.observatii];
+    const common = [s.date, profileName(profileOf(s)), { los: 'limite stabilitate', bess: 'BESS', fukuda: 'Fukuda' }[kindOf(s)] || 'balans', s.simulated ? 'da' : 'nu', s.settings?.stance, j.instabilitate, j.ameteala, j.somn_ore, j.perioada_grea ? 'da' : 'nu', j.durere_cap ? 'da' : 'nu', j.observatii];
     if (kindOf(s) === 'los') {
-      s.los.dirs.forEach(d => lines.push([...common, 'aplecare ' + d.name, d.stopped ? 'da' : 'nu', '', '', '', '', '', '', '', '', '', '', '', '', d.max_cm].map(csvCell).join(',')));
+      s.los.dirs.forEach(d => lines.push([...common, 'aplecare ' + d.name, d.stopped ? 'da' : 'nu', '', '', '', '', '', '', '', '', '', '', '', '', d.max_cm, '', '', '', '', '', '', ''].map(csvCell).join(',')));
+      return;
+    }
+    if (kindOf(s) === 'fukuda') {
+      const F = s.fukuda || {};
+      lines.push([...common, 'Fukuda', F.stopped ? 'da' : 'nu', F.reason, F.duration_s, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', F.rotation_deg, F.distance_cm, F.steps].map(csvCell).join(','));
       return;
     }
     const pr = sensoryProfile(s.trials);
     s.trials.forEach(t => {
       const m = t.metrics || {};
       lines.push([...common, COND[t.cond].label, t.stopped ? 'da' : 'nu', t.reason, m.duration_s, m.velocity_cms, m.path_cm, m.area95_cm2, m.rmsAP_cm, m.rmsML_cm, m.rangeAP_cm, m.rangeML_cm,
-        pv(pr.romberg), pv(pr.foam), pv(pr.vestibular), ''].map(csvCell).join(','));
+        pv(pr.romberg), pv(pr.foam), pv(pr.vestibular), '', t.hold_s, t.errors, t.head?.amp_deg, t.head?.freq_hz, '', '', ''].map(csvCell).join(','));
     });
   });
   download(`jurnal-echilibru-${stamp()}.csv`, '﻿' + lines.join('\n'), 'text/csv;charset=utf-8');
@@ -1416,7 +1756,7 @@ $('fileImport').addEventListener('change', async e => {
   e.target.value = '';
 });
 
-try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderLast(); renderLos(); renderEvo(); }); } catch (e) {}
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderLast(); renderLos(); renderAdv(); renderEvo(); }); } catch (e) {}
 
 // notițele din evaluarea clinică: doar în acest browser, afișate lângă instrucțiunile testului
 function loadClinical(id = curProfile()) { try { return localStorage.getItem(clinKey(id)) || ''; } catch (e) { return ''; } }
@@ -1487,8 +1827,8 @@ showClinical();
 // date de test. Fără server TURN: dacă legătura directă nu merge, nu se face deloc, nu printr-un releu.
 const PEER_PREFIX = 'balance-journal-xr-';
 const PEER_OPTS = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } };
-const SYNC_IDS = ['profileSel', 'refSel', 'j-instab', 'j-amet', 'j-somn', 'j-greu', 'j-cap', 'j-note', 'j-practice', 'k-sway', 'k-los', 's-stance', 's-dur',
-  'c-open', 'c-closed', 'c-okn', 'c-foam_open', 'c-foam_closed', 'k-wall', 'k-person', 'k-ok', 'clin'];
+const SYNC_IDS = ['profileSel', 'refSel', 'k-adv', 'j-instab', 'j-amet', 'j-somn', 'j-greu', 'j-cap', 'j-note', 'j-practice', 'k-sway', 'k-los', 'k-bess', 'k-fukuda', 's-stance', 's-dur',
+  ...ORDER.map(c => 'c-' + c), 'k-wall', 'k-person', 'k-ok', 'clin'];
 let applyingRemote = false;
 
 function linkSend(m) { if (link.open && link.conn) { try { link.conn.send(m); } catch (e) {} } }
@@ -1521,7 +1861,7 @@ function liteSessions(list) {
   return list.map(s => ({
     ...s,
     los: s.los ? { dirs: s.los.dirs } : s.los,
-    trials: (s.trials || []).map(t => ({ cond: t.cond, stopped: t.stopped, reason: t.reason, metrics: t.metrics ? (keep.has(s.id) ? t.metrics : { ...t.metrics, trace: null }) : null }))
+    trials: (s.trials || []).map(t => ({ cond: t.cond, stopped: t.stopped, reason: t.reason, hold_s: t.hold_s, touched: t.touched, errors: t.errors, head: t.head, metrics: t.metrics ? (keep.has(s.id) ? t.metrics : { ...t.metrics, trace: null }) : null }))
   }));
 }
 
@@ -1631,6 +1971,8 @@ async function onLinkData(m) {
     else if (m.t === 'cmd') {
       if (m.c === 'select') onSelect();
       else if (m.c === 'stop') onSqueeze();
+      else if (m.c === 'touch') legTouch();
+      else if (m.c === 'error') bessError();
       else if (m.c === 'sim' && !running) await runSimulation();
       else if (m.c === 'profileAdd' && typeof m.name === 'string' && m.name.trim()) addProfile(m.name.trim());
       else if (m.c === 'profileRen' && typeof m.name === 'string' && m.name.trim()) renameProfile(m.id, m.name.trim());
@@ -1645,8 +1987,17 @@ function renderLive(st) {
   const on = !!st.running;
   $('btnNext').disabled = !(on && st.phase === 'ready');
   $('btnAbort').disabled = !on;
+  $('btnTouch').hidden = !(on && st.type === 'leg' && st.phase === 'record');
+  $('btnErr').hidden = !(on && st.type === 'bess' && st.phase === 'record');
+  $('btnErr').textContent = `+1 greșeală (${st.errors || 0})`;
   let title = 'Testul nu rulează', sub = 'Completează formularul de mai jos. Apoi persoana cu casca apasă butonul mare „Pornește testul”.';
-  if (on && st.kind === 'los') {
+  if (on && st.kind === 'fukuda') {
+    title = 'Fukuda · 50 de pași pe loc';
+    sub = st.phase === 'ready' ? 'Brațele înainte. Apasă „Pornește proba” când e gata.'
+      : st.phase === 'countdown' ? `Începe în ${st.secLeft}…`
+      : st.phase === 'record' ? `${st.steps} pași din 50 · ${st.elapsed} s · rotit ${fmt(Math.abs(st.yaw || 0), 0)}° spre ${(st.yaw || 0) >= 0 ? 'dreapta' : 'stânga'}`
+      : st.phase === 'done' ? 'Test terminat. Se salvează…' : '';
+  } else if (on && st.kind === 'los') {
     title = `Limite de stabilitate · ${Math.min(st.idx + 1, st.n)} din ${st.n} · ${st.label}`;
     sub = st.phase === 'ready' ? 'Stă drept, la mijloc. Apasă „Pornește proba” când e gata.'
       : st.phase === 'los_center' ? `Drept, la mijloc · ${st.secLeft} s`
@@ -1660,18 +2011,18 @@ function renderLive(st) {
       : st.phase === 'done' ? 'Test terminat. Se salvează…' : '';
   }
   $('liveTitle').textContent = title; $('liveSub').textContent = sub;
-  if (on && st.ap != null) { link.trail.push([st.ap, st.ml]); if (link.trail.length > 90) link.trail.shift(); }
+  if (on && st.ap != null) { link.trail.push([st.ap, st.ml]); if (link.trail.length > (st.kind === 'fukuda' ? 900 : 90)) link.trail.shift(); }
   if (!on || (st.kind !== 'los' && st.phase !== 'record')) link.trail = [];
   drawLive(st);
 }
 function drawLive(st) {
   const cv = $('livePlot'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2;
   ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
-  const los = st.kind === 'los';
-  const half = los ? 22 : 6;   // cm de la centru la margine
+  const los = st.kind === 'los', fuk = st.kind === 'fukuda';
+  const half = fuk ? 100 : los ? 22 : 6;   // cm de la centru la margine
   const k = (W / 2 - 40) / half;
   ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
-  const step = los ? 5 : 1;
+  const step = fuk ? 25 : los ? 5 : 1;
   for (let v = step; v <= half; v += step) { ctx.beginPath(); ctx.arc(cx, cy, v * k, 0, Math.PI * 2); ctx.stroke(); }
   ctx.fillStyle = css('--muted'); ctx.font = '22px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
   ctx.fillText('înainte', cx, 28); ctx.textAlign = 'left'; ctx.fillText(`cercuri la ${step} cm`, 14, H - 14);
@@ -1697,7 +2048,11 @@ function drawLive(st) {
     const L = Math.hypot(x, y), lim = W / 2 - 24, out = L > lim;
     if (out) { x *= lim / L; y *= lim / L; }
     ctx.fillStyle = out ? css('--bad') : '#ff5a36'; ctx.beginPath(); ctx.arc(cx + x, cy + y, 13, 0, Math.PI * 2); ctx.fill();
-    if (!los) { ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.fillText(`${fmt(Math.hypot(st.ap, st.ml), 1)} cm (oprire la 20)`, W - 14, H - 14); }
+    if (fuk && st.yaw != null) {
+      const a = st.yaw * Math.PI / 180;
+      ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(cx + x, cy + y); ctx.lineTo(cx + x + Math.sin(a) * 45, cy + y - Math.cos(a) * 45); ctx.stroke();
+    }
+    if (!los) { ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.fillText(`${fmt(Math.hypot(st.ap, st.ml), 1)} cm (oprire la ${fuk ? 100 : 20})`, W - 14, H - 14); }
   }
 }
 
@@ -1712,6 +2067,8 @@ $('btnGuestMode').addEventListener('click', () => { resetPeer(); link.role = nul
 $('btnBig').addEventListener('click', () => { if (!$('btnStart').disabled) startXR(); });
 $('btnNext').addEventListener('click', () => linkSend({ t: 'cmd', c: 'select' }));
 $('btnAbort').addEventListener('click', () => linkSend({ t: 'cmd', c: 'stop' }));
+$('btnTouch').addEventListener('click', () => linkSend({ t: 'cmd', c: 'touch' }));
+$('btnErr').addEventListener('click', () => linkSend({ t: 'cmd', c: 'error' }));
 addEventListener('pagehide', () => resetPeer());
 
 loadPrefs();

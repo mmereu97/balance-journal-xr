@@ -28,6 +28,16 @@ I built it for a member of my family, so the interface is in Romanian. **All res
 | Foam pad, eyes open | reliable information from the feet | vision, inner ear |
 | Foam pad, eyes closed | vision and feet | mostly the inner ear, the home equivalent of condition 5 of clinical sensory organisation testing |
 
+**Advanced tests** (hidden by default, for people without a balance disorder or with the doctor's agreement), all standard clinical protocols:
+
+| Test | How | What the headset adds |
+|---|---|---|
+| Tandem (sharpened Romberg) | heel to toe, eyes open and closed | sway on a narrow base, mostly lateral |
+| Single-leg stance | right and left, eyes open and closed | seconds held (foot down = trigger, or the companion), plus sway while standing |
+| Head-shake on floor and foam | eyes closed, the head turns left–right on every beep (±15°, 1 Hz) | checks that the head really moved at the target amplitude and rate; sway is measured at the neck axis, so head rotation is not mistaken for body sway |
+| BESS | 6 × 20 s, eyes closed, hands on hips: double, single and tandem stance, on floor and foam | errors counted by the companion (or the trigger); large steps are counted automatically |
+| Fukuda stepping test | 50 steps in place with eyes closed and arms forward | steps counted from the vertical head bob; rotation in degrees and displacement in cm, measured directly instead of read off floor marks |
+
 **Limits of stability** (once a week): a top-down map shows the head as a red dot. For each of eight directions: 3 seconds centred, then a slow lean from the ankles, without lifting the feet, towards a 15 cm target circle, then back.
 
 **People:** one headset, several people. Every test belongs to the person selected at the top of the journal; results, charts, exports and clinical notes are kept apart. **Compare with** shows another person's averages next to the current ones, for example a healthy family member as a reference: under each sensory ratio, and as dashed lines on the evolution chart (real saved tests only, same foot position). Names stay in the headset browser.
@@ -46,6 +56,8 @@ The pose of the headset is read on every XR frame (72 Hz by default on Quest 3).
 - **RMS and range** of AP and ML sway;
 - the **95% confidence ellipse area**, π · 5.991 · √det(Σ), where Σ is the AP/ML covariance matrix (5.991 is the χ² value for two degrees of freedom at 95%);
 - the **sensory profile**: the mean velocity of each condition divided by the reference condition. "×2.9 on foam with eyes closed" means sway is almost three times faster when only the inner ear is left. A ratio that falls over the weeks means that system is compensating better.
+
+For the advanced tests: seconds held on one leg; for head-shake, the head yaw amplitude and frequency (zero crossings) and the sway of a point 9 cm behind the eyes (without that correction a ±15° head turn alone would read as 9 cm/s of sway); for BESS, errors per stance and the total; for Fukuda, the rotation (mean heading of the last second against the first, unwrapped), the displacement and the path seen from above.
 
 For limits of stability: the furthest excursion in each direction, the area of the eight-point polygon, and the left/right and front/back asymmetries, compared with the previous test.
 
