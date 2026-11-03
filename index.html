@@ -26,6 +26,7 @@
   --c-tandem-open: #8a6a12; --c-tandem-closed: #c0841a;
   --c-leg-r-open: #3f7a22; --c-leg-l-open: #6c9e2e; --c-leg-r-closed: #22657a; --c-leg-l-closed: #4a93a8;
   --c-hs-floor: #7b3d9e; --c-hs-foam: #b63a86; --c-bess: #5a5f6b;
+  --c-dual-open: #2d5fa8; --c-dual-foam: #128a7b;
   --bad: #b42318;
   --bad-bg: #fbe9e7;
   --good: #2c7a4b;
@@ -43,7 +44,7 @@
     --accent: #7ea8ee; --accent-ink: #0b1220; --c-open: #7ea8ee; --c-closed: #e38c62; --c-okn: #b59de3;
     --c-foam-open: #5cc4b6; --c-foam-closed: #e07ab8;
     --c-tandem-open: #e0b85a; --c-tandem-closed: #f0c674; --c-leg-r-open: #8fcf6a; --c-leg-l-open: #b5dc7f; --c-leg-r-closed: #6cc3d8; --c-leg-l-closed: #98d6e6;
-    --c-hs-floor: #c49be3; --c-hs-foam: #ee8cc6; --c-bess: #aab0bb;
+    --c-hs-floor: #c49be3; --c-hs-foam: #ee8cc6; --c-bess: #aab0bb; --c-dual-open: #9cc0f5; --c-dual-foam: #7fd9cc;
     --bad: #f0857a; --bad-bg: #3a1c19; --good: #6cc191; --warn-bg: #33290f; --warn-ink: #f0cd84; --focus-bg: #18233a;
     color-scheme: dark;
   }
@@ -53,7 +54,7 @@
   --accent: #7ea8ee; --accent-ink: #0b1220; --c-open: #7ea8ee; --c-closed: #e38c62; --c-okn: #b59de3;
   --c-foam-open: #5cc4b6; --c-foam-closed: #e07ab8;
     --c-tandem-open: #e0b85a; --c-tandem-closed: #f0c674; --c-leg-r-open: #8fcf6a; --c-leg-l-open: #b5dc7f; --c-leg-r-closed: #6cc3d8; --c-leg-l-closed: #98d6e6;
-    --c-hs-floor: #c49be3; --c-hs-foam: #ee8cc6; --c-bess: #aab0bb;
+    --c-hs-floor: #c49be3; --c-hs-foam: #ee8cc6; --c-bess: #aab0bb; --c-dual-open: #9cc0f5; --c-dual-foam: #7fd9cc;
   --bad: #f0857a; --bad-bg: #3a1c19; --good: #6cc191; --warn-bg: #33290f; --warn-ink: #f0cd84; --focus-bg: #18233a;
   color-scheme: dark;
 }
@@ -165,6 +166,14 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
 .who { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .who select { width: auto; min-width: 14ch; }
 .prof .ref { font-size: 0.82rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 4px; margin-top: 2px; }
+.qitem { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.qitem p { max-width: none; }
+.qopts { display: flex; gap: 6px; flex-wrap: wrap; }
+.qopts label { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-weight: 500; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.qopts label:has(input:checked) { border-color: var(--accent); background: var(--focus-bg); }
+.qopts input { accent-color: var(--accent); }
+.qitem select { width: auto; min-width: 9ch; }
+@media (max-width: 680px) { .qitem { grid-template-columns: minmax(0, 1fr); } }
 .live-title { font-size: 1.35rem; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -208,6 +217,7 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
       <span id="liveSub"></span>
       <div class="actions">
         <button class="primary" id="btnNext" disabled>Pornește proba</button>
+        <button id="btnRotL2" hidden>⟲ 1°</button><button id="btnRotL1" hidden>⟲ 0,2°</button><button id="btnRotR1" hidden>0,2° ⟳</button><button id="btnRotR2" hidden>1° ⟳</button>
         <button id="btnTouch" hidden>A pus piciorul jos</button>
         <button id="btnErr" hidden>+1 greșeală</button>
         <button class="danger" id="btnAbort" disabled>Oprește tot</button>
@@ -266,6 +276,8 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
       <label for="k-sway"><input type="radio" name="kind" id="k-sway" value="sway" checked><span>Test de balans<small>Stai fără să te miști, pe podea și pe pernă. De 2–3 ori pe săptămână.</small></span></label>
       <label for="k-los"><input type="radio" name="kind" id="k-los" value="los"><span>Limite de stabilitate<small>Te apleci în 8 direcții, fără să faci pas. O dată pe săptămână.</small></span></label>
       <label for="k-bess" class="adv-only" hidden><input type="radio" name="kind" id="k-bess" value="bess"><span>BESS (avansat)<small>6 poziții de câte 20 s, cu ochii închiși, pe podea și pe pernă. Se numără greșelile.</small></span></label>
+      <label for="k-vert"><input type="radio" name="kind" id="k-vert" value="vert"><span>Verticala (pe scaun)<small>În întuneric, rotești o linie până pare verticală (SVV), apoi la fel într-un cadru înclinat (Rod and Frame).</small></span></label>
+      <label for="k-reach"><input type="radio" name="kind" id="k-reach" value="reach"><span>Atingere funcțională<small>Cu controlerul în mână, te întinzi cât poți înainte și lateral, fără pas. Se măsoară centimetrii.</small></span></label>
       <label for="k-fukuda" class="adv-only" hidden><input type="radio" name="kind" id="k-fukuda" value="fukuda"><span>Fukuda (avansat)<small>50 de pași pe loc, cu ochii închiși. Se măsoară cât te rotești și cât te deplasezi.</small></span></label>
     </div>
     <div class="checks" style="margin-top:6px">
@@ -310,7 +322,24 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
       <label class="check" for="c-leg_r_closed"><input type="checkbox" id="c-leg_r_closed"><span><span class="sw" style="background:var(--c-leg-r-closed)"></span>Piciorul drept · ochi închiși<small>Cea mai grea probă statică.</small></span></label>
       <label class="check" for="c-leg_l_closed"><input type="checkbox" id="c-leg_l_closed"><span><span class="sw" style="background:var(--c-leg-l-closed)"></span>Piciorul stâng · ochi închiși</span></label>
       <label class="check" for="c-hs_floor"><input type="checkbox" id="c-hs_floor"><span><span class="sw" style="background:var(--c-hs-floor)"></span>Podea · ochi închiși · capul în mișcare<small>Capul se întoarce stânga–dreapta la fiecare bip (cam 15°), ca un „nu” lent.</small></span></label>
+      <label class="check" for="c-open_dual"><input type="checkbox" id="c-open_dual"><span><span class="sw" style="background:var(--c-dual-open)"></span>Podea · ochi deschiși · dublă sarcină<small>Ca proba de referință, dar numărând cu voce tare înapoi din 3 în 3. Arată cât „consumă” echilibrul din atenție.</small></span></label>
+      <label class="check" for="c-foam_open_dual"><input type="checkbox" id="c-foam_open_dual"><span><span class="sw" style="background:var(--c-dual-foam)"></span>Pernă · ochi deschiși · dublă sarcină<small>La fel, pe pernă.</small></span></label>
       <label class="check" for="c-hs_foam"><input type="checkbox" id="c-hs_foam"><span><span class="sw" style="background:var(--c-hs-foam)"></span>Pernă · ochi închiși · capul în mișcare<small>Ca proba de mai sus, pe pernă: încercarea cea mai grea pentru urechea internă.</small></span></label>
+    </div>
+  </div>
+
+  <div class="field" id="vertField" hidden>
+    <span class="lbl">Probe</span>
+    <div class="checks">
+      <label class="check" for="v-svv"><input type="checkbox" id="v-svv" checked><span>Verticala vizuală subiectivă (SVV), 8 încercări<small>Doar linia, în întuneric: arată cum simte corpul direcția gravitației (otolitele din urechea internă).</small></span></label>
+      <label class="check" for="v-rft"><input type="checkbox" id="v-rft" checked><span>Rod and Frame, 8 încercări<small>Linia într-un cadru înclinat cu 18°. Cât o „trage” cadrul arată cât se bazează percepția pe vedere.</small></span></label>
+    </div>
+  </div>
+  <div class="field" id="reachField" hidden>
+    <span class="lbl">Direcții</span>
+    <div class="checks">
+      <label class="check" for="r-fwd"><input type="checkbox" id="r-fwd" checked><span>Înainte, 3 încercări</span></label>
+      <label class="check" for="r-side"><input type="checkbox" id="r-side" checked><span>Lateral, spre stânga și spre dreapta, câte 3 încercări</span></label>
     </div>
   </div>
 
@@ -336,6 +365,12 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
   </div>
   <div class="note" id="noteFukuda" hidden>
     <p><b>Fukuda:</b> spațiu liber de cel puțin 2 m în jur, fără obstacole, iar însoțitorul aproape. În picioare, brațele întinse înainte, iar la bipul lung închide ochii și face <b>50 de pași pe loc</b>, în ritmul bipurilor, ridicând genunchii. Nu corectează direcția. Casca numără pașii din mișcarea capului și măsoară cât s-a rotit și cât s-a deplasat. Oprire automată după 1 m de deplasare; grip = oprire imediată.</p>
+  </div>
+  <div class="note" id="noteVert" hidden>
+    <p><b>Pe scaun</b>, cu spătar, capul drept și privirea înainte. Casca se întunecă și apare o linie: o rotește cu joystick-ul (stânga–dreapta) până i se pare perfect verticală, apoi apasă trăgaciul. Dacă îi e greu cu joystick-ul, însoțitorul o rotește de pe calculator, după indicațiile ei („mai spre stânga”), exact ca la testul clinic cu găleata. La Rod and Frame apare și un cadru înclinat: linia se aliniază după senzația de vertical, nu după cadru. Casca măsoară și cât de înclinat e capul, iar rezultatul ține cont de asta.</p>
+  </div>
+  <div class="note" id="noteReach" hidden>
+    <p><b>În picioare</b>, lângă un perete, cu însoțitorul aproape. Controlerul în mâna dinspre direcția de atingere (înainte: dreapta). Brațul întins la nivelul umărului: un apăsat pe trăgaci notează startul, apoi se întinde cât poate, <b>fără să ridice călcâiele și fără pas</b>, și apasă din nou la maxim. Casca măsoară cât s-a deplasat mâna, în centimetri.</p>
   </div>
   <div class="note" id="noteLos" hidden>
     <p><b>Cum se face:</b> pe panou apare o hartă văzută de sus, cu un punct roșu care e capul persoanei testate. Pentru fiecare din cele 8 direcții: 3 secunde drept la mijloc, apoi la bipul lung se apleacă încet spre direcția arătată, din glezne, cu corpul drept, <b>fără să ridice tălpile și fără pas</b>, până la cercul exterior (15 cm) sau cât poate în siguranță. Ține poziția, iar la cele două bipuri revine la mijloc.</p>
@@ -427,6 +462,28 @@ button.huge { font-size: 1.6rem; padding: 24px 32px; min-height: 96px; width: 10
     <p class="hint" id="evoExplain"></p>
     <div class="table-scroll"><table id="histTable"></table></div>
   </div>
+</section>
+
+<section class="panel" aria-labelledby="h-other" id="otherSection" hidden>
+  <div class="panel-head"><h2 id="h-other">Verticala, atingerea și chestionarele</h2><span class="hint">ultimul rezultat, comparat cu cel dinainte</span></div>
+  <div class="profile" id="otherCards"></div>
+  <div class="table-scroll"><table id="otherTable"></table></div>
+</section>
+
+<section class="panel" aria-labelledby="h-q">
+  <div class="panel-head"><h2 id="h-q">Chestionare</h2><span class="hint">o dată pe lună, fără cască</span></div>
+  <div class="who">
+    <label for="qSel" class="lbl">Chestionarul</label>
+    <select id="qSel">
+      <option value="dhi">DHI · cât te afectează amețeala (25 de întrebări)</option>
+      <option value="abc">ABC · cât de sigur(ă) te simți (16 situații)</option>
+      <option value="vvas">VVAS · amețeala în medii vizual încărcate (9 situații)</option>
+    </select>
+    <span class="hint" style="flex-basis:100%" id="qIntro"></span>
+  </div>
+  <div id="qForm"></div>
+  <div class="actions"><button class="primary" id="btnQSave">Salvează chestionarul</button><span class="hint" id="qHint"></span></div>
+  <p class="hint">Traduceri neoficiale ale chestionarelor standard. Scorurile sunt bune pentru urmărirea în timp și pentru discuția cu medicul, nu pentru diagnostic. Se salvează pe persoana aleasă sus; legat la cască, se salvează pe cască.</p>
 </section>
 
 <section class="panel" aria-labelledby="h-data">
@@ -616,9 +673,14 @@ const COND = {
                    panel: ['Pe piciorul stâng · ochii închiși', 'La bipul lung: dreptul sus, ochii închiși.', 'Dacă îl pui jos: trăgaciul.'] },
   hs_floor:      { label: 'Podea · capul în mișcare', short: 'Cap, podea', color: '--c-hs-floor', eyes: false, type: 'hs', pivot: 0.09,
                    panel: ['Podea · ochii închiși · capul în mișcare', 'La fiecare bip, capul în cealaltă parte (~15°).', 'Ochii închiși tot timpul.'] },
+  open_dual:     { label: 'Podea · ochi deschiși · dublă sarcină', short: 'Dublă, podea', color: '--c-dual-open', eyes: true, dual: true,
+                   panel: ['Podea · ochii deschiși · dublă sarcină', 'Numără cu voce tare înapoi din 3 în 3.', 'Privește punctul din mijloc.'] },
+  foam_open_dual: { label: 'Pernă · ochi deschiși · dublă sarcină', short: 'Dublă, pernă', color: '--c-dual-foam', eyes: true, dual: true,
+                   panel: ['Pernă · ochii deschiși · dublă sarcină', 'Numără cu voce tare înapoi din 3 în 3.', 'Privește punctul din mijloc.'] },
   hs_foam:       { label: 'Pernă · capul în mișcare', short: 'Cap, pernă', color: '--c-hs-foam', eyes: false, type: 'hs', pivot: 0.09,
                    panel: ['Pernă · ochii închiși · capul în mișcare', 'La fiecare bip, capul în cealaltă parte (~15°).', 'Ochii închiși tot timpul.'] },
   // BESS: 20 s, ochii închiși, mâinile pe șolduri
+  // (dubla sarcină e mai sus, la probele avansate)
   bess_double_firm: { label: 'BESS · podea · picioare lipite', short: 'Podea, lipite', color: '--c-bess', eyes: false, type: 'bess',
                       panel: ['BESS · podea · picioare lipite', 'Mâinile pe șolduri. Ochii închiși la bipul lung.', 'Dacă te dezechilibrezi, revino și continuă.'] },
   bess_single_firm: { label: 'BESS · podea · un picior', short: 'Podea, un picior', color: '--c-bess', eyes: false, type: 'bess',
@@ -633,7 +695,7 @@ const COND = {
                       panel: ['BESS · pernă · tandem', 'Piciorul nedominant în spate.', 'Mâinile pe șolduri. Ochii închiși la bipul lung.'] }
 };
 const BASIC = ['open', 'closed', 'okn', 'foam_open', 'foam_closed'];
-const ADVANCED = ['tandem_open', 'tandem_closed', 'leg_r_open', 'leg_l_open', 'leg_r_closed', 'leg_l_closed', 'hs_floor', 'hs_foam'];
+const ADVANCED = ['open_dual', 'foam_open_dual', 'tandem_open', 'tandem_closed', 'leg_r_open', 'leg_l_open', 'leg_r_closed', 'leg_l_closed', 'hs_floor', 'hs_foam'];
 const ORDER = BASIC.concat(ADVANCED);
 const BESS_ORDER = ['bess_double_firm', 'bess_single_firm', 'bess_tandem_firm', 'bess_double_foam', 'bess_single_foam', 'bess_tandem_foam'];
 const HS_BEAT = 0.5;                       // s între două întoarceri ale capului (un ciclu = 1 s)
@@ -756,6 +818,8 @@ function settings() {
   const kind = testKind();
   if (kind === 'bess') return { stance: null, duration: BESS_DUR, conds: BESS_ORDER.slice() };
   if (kind === 'fukuda') return { stance: null, duration: FUK_MAX, conds: [], steps: FUK_STEPS, beat_s: FUK_BEAT };
+  if (kind === 'vert') return { stance: null, duration: 0, conds: [], vert: { svv: $('v-svv').checked, rft: $('v-rft').checked, rft_tilt: RFT_TILT } };
+  if (kind === 'reach') return { stance: null, duration: 0, conds: [], reach: { fwd: $('r-fwd').checked, side: $('r-side').checked } };
   return { stance: $('s-stance').value, duration: +$('s-dur').value, conds: selectedConds() };
 }
 
@@ -774,14 +838,16 @@ function updateStartState() {
   $('noteBess').hidden = kind !== 'bess';
   $('noteFukuda').hidden = kind !== 'fukuda';
   $('noteLos').hidden = kind !== 'los';
-  const total = kind === 'los' ? 8 * (LOS_LEAN + LOS_CENTER) + 15 : kind === 'bess' ? BESS_ORDER.length * (BESS_DUR + 14) : kind === 'fukuda' ? FUK_STEPS * FUK_BEAT + 20 : conds.length * (+$('s-dur').value + 12);
+  $('vertField').hidden = kind !== 'vert'; $('noteVert').hidden = kind !== 'vert';
+  $('reachField').hidden = kind !== 'reach'; $('noteReach').hidden = kind !== 'reach';
+  const total = kind === 'vert' ? (($('v-svv').checked ? VERT_N : 0) + ($('v-rft').checked ? VERT_N : 0)) * 15 + 20 : kind === 'reach' ? (($('r-fwd').checked ? 3 : 0) + ($('r-side').checked ? 6 : 0)) * 15 + 20 : kind === 'los' ? 8 * (LOS_LEAN + LOS_CENTER) + 15 : kind === 'bess' ? BESS_ORDER.length * (BESS_DUR + 14) : kind === 'fukuda' ? FUK_STEPS * FUK_BEAT + 20 : conds.length * (+$('s-dur').value + 12);
   $('durationHint').textContent = (kind !== 'sway' || conds.length) ? `aprox. ${Math.ceil(total / 60)} min în total` : '';
-  const safe = $('k-wall').checked && $('k-person').checked && $('k-ok').checked;
-  const okConds = kind !== 'sway' || conds.length > 0;
+  const safe = kind === 'vert' ? $('k-ok').checked : $('k-wall').checked && $('k-person').checked && $('k-ok').checked;   // verticala se face pe scaun
+  const okConds = kind === 'vert' ? $('v-svv').checked || $('v-rft').checked : kind === 'reach' ? $('r-fwd').checked || $('r-side').checked : kind !== 'sway' || conds.length > 0;
   let hint = '';
   if (!xrSupported) hint = 'Butonul devine activ când deschizi pagina pe Quest.';
   else if (!okConds) hint = 'Alege cel puțin o probă.';
-  else if (!safe) hint = 'Bifează cele trei verificări de siguranță.';
+  else if (!safe) hint = kind === 'vert' ? 'Bifează verificarea despre amețeală.' : 'Bifează cele trei verificări de siguranță.';
   else if (kind === 'sway' && !conds.includes('open')) hint = 'Fără proba de referință nu se pot calcula rapoartele.';
   $('btnStart').disabled = !(xrSupported && okConds && safe) || running;
   $('btnSim').disabled = !okConds || running;
@@ -801,7 +867,7 @@ function updateStartState() {
   }
   savePrefs();
 }
-[...ORDER.map(c => 'c-' + c), 'k-wall', 'k-person', 'k-ok', 's-dur', 's-stance', 'k-sway', 'k-los', 'k-bess', 'k-fukuda', 'k-adv']
+[...ORDER.map(c => 'c-' + c), 'k-wall', 'k-person', 'k-ok', 's-dur', 's-stance', 'k-sway', 'k-los', 'k-bess', 'k-fukuda', 'k-adv', 'k-vert', 'k-reach', 'v-svv', 'v-rft', 'r-fwd', 'r-side']
   .forEach(id => $(id).addEventListener('change', () => { updateStartState(); if (id === 's-stance') renderEvo(); }));
 $('evoMetric').addEventListener('change', () => { savePrefs(); renderEvo(); });
 
@@ -842,7 +908,7 @@ const sndEnd = () => { beep(990, 0.15); beep(990, 0.15, 0.25); };
 const sndStop = () => { beep(330, 0.35); beep(260, 0.45, 0.4); };
 
 // ---------- three.js / WebXR
-let renderer = null, scene, camera, panel, panelCtx, panelTex, dot, stripes, floorGrid;
+let renderer = null, scene, camera, panel, panelCtx, panelTex, dot, stripes, floorGrid, dark, vgroup, rod, rodFrame;
 const run = {
   kind: 'sway', session: null, conds: [], idx: 0, phase: 'idle', trials: [], rec: null,
   countEnd: 0, lastTick: -1, dur: 30, journal: null, settings: null, lastPose: null, lastT: 0, doneAt: 0,
@@ -879,6 +945,17 @@ function initThree() {
   stripes = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 1.7, 96, 1, true), new THREE.MeshBasicMaterial({ map: stTex, side: THREE.BackSide }));
   stripes.position.y = 0.25; stripes.visible = false;
   scene.add(stripes);
+
+  // verticala: o sferă neagră acoperă camera reală, iar linia și cadrul stau fixe față de cap
+  dark = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 16), new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide }));
+  dark.visible = false; scene.add(dark);
+  vgroup = new THREE.Group(); vgroup.visible = false; scene.add(vgroup);
+  rod = new THREE.Mesh(new THREE.PlaneGeometry(0.012, 0.5), new THREE.MeshBasicMaterial({ color: 0xd8d8c8 }));
+  rod.position.z = -1.5; vgroup.add(rod);
+  rodFrame = new THREE.Group(); rodFrame.position.z = -1.6;
+  const fm = new THREE.MeshBasicMaterial({ color: 0x8a8a7a });
+  [[0, 0.4, 0.812, 0.012], [0, -0.4, 0.812, 0.012], [0.4, 0, 0.012, 0.812], [-0.4, 0, 0.012, 0.812]].forEach(([x, y, w, h]) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), fm); m.position.set(x, y, 0); rodFrame.add(m); });
+  vgroup.add(rodFrame);
 
   floorGrid = new THREE.GridHelper(8, 16, 0x557766, 0x334440);
   floorGrid.position.y = -1.6; floorGrid.visible = false;
@@ -954,6 +1031,7 @@ function showReady(msg) {
 }
 function startCountdown(t) {
   run.phase = 'countdown'; run.countEnd = t + 3; run.lastTick = -1;
+  run.dualStart = 70 + Math.floor(Math.random() * 30);
   if (run.conds[run.idx] === 'okn') stripes.visible = true;
 }
 function startRecording(t, tr) {
@@ -1002,6 +1080,7 @@ function finishTrial(stopped, reason, extra = {}) {
   if (info.type === 'leg') { trial.hold_s = extra.hold_s ?? (rec && rec.s.t.length ? Math.round(rec.s.t[rec.s.t.length - 1] * 10) / 10 : 0); trial.touched = !!extra.touched; }
   if (info.type === 'bess') trial.errors = stopped ? BESS_MAX_ERRORS : (rec ? rec.errors : 0);
   if (info.type === 'hs' && rec) trial.head = headMotion(rec.s, rec.heading);
+  if (info.dual) trial.dual_start = run.dualStart;
   run.trials.push(trial);
   run.rec = null;
   stripes.visible = false; dot.visible = false; panel.visible = true;
@@ -1019,7 +1098,8 @@ function swayFrame(t, tr) {
     const left = Math.ceil(run.countEnd - t);
     if (left !== run.lastTick && left > 0) {
       run.lastTick = left; sndTick();
-      if (run.conds[run.idx] !== 'okn') { drawPanel('Pregătește-te', [COND[run.conds[run.idx]].panel[0]], String(left)); placePanel(tr); }
+      const ci = COND[run.conds[run.idx]];
+      if (run.conds[run.idx] !== 'okn') { drawPanel('Pregătește-te', [ci.dual ? `De la bipul lung: ${run.dualStart}, ${run.dualStart - 3}, ${run.dualStart - 6}…` : ci.panel[0]], String(left)); placePanel(tr); }
     }
     if (t >= run.countEnd) startRecording(t, tr);
   } else if (run.phase === 'record') {
@@ -1157,8 +1237,134 @@ function fukFinish(stopped, reason) {
   panel.visible = true; drawPanel('Gata', ['Deschide ochii.', 'Rezultatele apar pe pagină.']);
 }
 
+// ---------- flux: verticala (SVV și Rod and Frame), pe scaun
+const VERT_N = 8, RFT_TILT = 18, VERT_SPEED = 25;   // încercări pe probă, grade cadru, grade/s la joystick împins complet
+const r1 = v => Math.round(v * 10) / 10;
+function vertPlan(o) {
+  const plan = [], off = () => 10 + Math.random() * 15;
+  if (o.svv) for (let i = 0; i < VERT_N; i++) plan.push({ test: 'svv', frame: 0, start: (i % 2 ? 1 : -1) * off() });
+  if (o.rft) [1, 1, 1, 1, -1, -1, -1, -1].sort(() => Math.random() - 0.5).forEach((f, i) => plan.push({ test: 'rft', frame: f * RFT_TILT, start: (i % 2 ? 1 : -1) * off() }));
+  return plan;
+}
+// înclinarea capului în plan frontal, în grade; pozitiv = urechea dreaptă în jos (sens orar, văzut de persoană)
+function headRollCw(q) { return -Math.asin(Math.max(-1, Math.min(1, 2 * (q.x * q.y + q.w * q.z)))) * 180 / Math.PI; }
+function stickX() {
+  let ax = 0;
+  try { for (const src of run.session.inputSources) { const g = src.gamepad; if (g && g.axes.length >= 4) ax += g.axes[2]; else if (g && g.axes.length >= 2) ax += g.axes[0]; } } catch (e) {}
+  return Math.max(-1, Math.min(1, ax));
+}
+function vertReady() {
+  run.phase = 'ready'; panel.visible = true; dark.visible = false; vgroup.visible = false;
+  if (run.lastPose) placePanel(run.lastPose);
+  drawPanel('Verticala', ['Pe scaun, capul drept, privirea înainte.', 'Rotește linia cu joystick-ul până pare verticală,', 'apoi apasă trăgaciul. Nu te lua după cadru.', 'Apasă trăgaciul ca să începi.']);
+}
+function vertStartTrial() {
+  const V = run.vert, tr = V.plan[V.idx];
+  V.angle = tr.start; V.t0 = run.lastT; V.rolls = []; V.remote = 0;
+  rod.rotation.z = -V.angle * Math.PI / 180;
+  rodFrame.visible = tr.test === 'rft'; rodFrame.rotation.z = -tr.frame * Math.PI / 180;
+  run.phase = 'adjust'; panel.visible = false; dark.visible = true; vgroup.visible = true;
+}
+function vertConfirm() {
+  const V = run.vert, tr = V.plan[V.idx], last = V.rolls.slice(-36);
+  const roll = last.length ? last.reduce((a, b) => a + b, 0) / last.length : 0;
+  V.results.push({ test: tr.test, frame: tr.frame, start: r1(tr.start), setting: r1(V.angle), roll: r1(roll), world: r1(V.angle + roll), time_s: r1(run.lastT - V.t0) });
+  sndEnd(); vgroup.visible = false; V.idx++;
+  if (V.idx < V.plan.length) { run.phase = 'gap'; V.gapEnd = run.lastT + 1.2; }
+  else { run.phase = 'done'; run.doneAt = run.lastT + 2; dark.visible = false; panel.visible = true; if (run.lastPose) placePanel(run.lastPose); drawPanel('Gata', ['Rezultatele apar pe pagină.']); }
+}
+function vertFrame(t, tr) {
+  const V = run.vert, p = tr.position, q = tr.orientation;
+  dark.position.set(p.x, p.y, p.z);
+  vgroup.position.set(p.x, p.y, p.z); vgroup.quaternion.set(q.x, q.y, q.z, q.w);
+  const dt = V.lastT == null ? 0 : Math.min(0.1, t - V.lastT); V.lastT = t;
+  if (run.phase === 'adjust') {
+    const ax = stickX();
+    if (Math.abs(ax) > 0.15) V.angle += ax * Math.abs(ax) * VERT_SPEED * dt;   // pătratic: fin la început, mai rapid la capăt
+    V.angle += V.remote; V.remote = 0;
+    V.angle = Math.max(-45, Math.min(45, V.angle));
+    rod.rotation.z = -V.angle * Math.PI / 180;
+    V.rolls.push(headRollCw(q));
+  } else if (run.phase === 'gap' && t >= V.gapEnd) vertStartTrial();
+  else if (run.phase === 'done' && t >= run.doneAt) endRun();
+}
+// SVV: media și abaterea; Rod and Frame: cât trage cadrul (jumătate din diferența dintre cadrul spre dreapta și spre stânga)
+function vertSummary(results) {
+  const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  const sd = a => { const m = mean(a); return a.length > 1 ? Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / (a.length - 1)) : null; };
+  const svv = results.filter(r => r.test === 'svv').map(r => r.world);
+  const rp = results.filter(r => r.test === 'rft' && r.frame > 0).map(r => r.world), rn = results.filter(r => r.test === 'rft' && r.frame < 0).map(r => r.world);
+  const r2 = v => v == null ? null : Math.round(v * 10) / 10;
+  return { svv_mean: r2(mean(svv)), svv_sd: r2(sd(svv)), svv_n: svv.length,
+           rft_effect: rp.length && rn.length ? r2((mean(rp) - mean(rn)) / 2) : null, rft_n: rp.length + rn.length,
+           roll_mean: r2(mean(results.map(r => r.roll))) };
+}
+
+// ---------- flux: atingere funcțională (Functional Reach)
+const REACH_N = 3;
+const REACH_TXT = { fwd: ['înainte', 'Brațul drept întins înainte, la nivelul umărului.'], left: ['spre stânga', 'Brațul stâng întins lateral, la nivelul umărului.'], right: ['spre dreapta', 'Brațul drept întins lateral, la nivelul umărului.'] };
+function reachPlan(o) {
+  const p = [];
+  if (o.fwd) for (let i = 0; i < REACH_N; i++) p.push('fwd');
+  if (o.side) { for (let i = 0; i < REACH_N; i++) p.push('left'); for (let i = 0; i < REACH_N; i++) p.push('right'); }
+  return p;
+}
+// pozițiile controlerelor (sau ale mâinilor), citite la fiecare cadru: un XRFrame e valabil
+// doar în timpul cadrului lui, nu și când vine apăsarea pe trăgaci
+function updateHands() {
+  const h = {};
+  try {
+    for (const src of run.session.inputSources) {
+      if (!src.gripSpace) continue;
+      const pose = run.xrFrame.getPose(src.gripSpace, run.xrRef); if (!pose) continue;
+      const pp = pose.transform.position, v = [pp.x, pp.y, pp.z];
+      h[src.handedness || 'any'] = v; if (!h.any) h.any = v;
+    }
+  } catch (e) {}
+  run.hands = h;
+}
+// controlerul din mâna potrivită, sau oricare, dacă e unul singur
+function handPos(dir) { const h = run.hands || {}; return h[dir === 'left' ? 'left' : 'right'] || h.any || null; }
+function reachReady() {
+  const R = run.reach, d = R.plan[R.idx];
+  run.phase = 'ready'; panel.visible = true;
+  if (run.lastPose) placePanel(run.lastPose);
+  drawPanel(`Atingere ${REACH_TXT[d][0]} · ${R.idx + 1} din ${R.plan.length}`, [REACH_TXT[d][1], 'Picioarele pe loc, depărtate cât umerii.', 'Apasă trăgaciul: se notează startul.']);
+}
+function reachStart() {
+  const R = run.reach, d = R.plan[R.idx], h = handPos(d);
+  if (!h) { drawPanel('Nu găsesc controlerul', ['Ține controlerul în mână', 'și apasă din nou trăgaciul.']); return; }
+  const q = run.lastPose.orientation, [fx, fz] = forwardFromQuat(q.x, q.y, q.z, q.w);
+  R.dir = d === 'fwd' ? [fx, fz] : d === 'right' ? [-fz, fx] : [fz, -fx];
+  R.start = h; R.best = 0; R.cur = 0; run.phase = 'reach'; sndStart();
+}
+function reachFrame(t, tr) {
+  const R = run.reach;
+  updateHands();
+  if (run.phase === 'reach') {
+    const h = handPos(R.plan[R.idx]);
+    if (h) { R.cur = ((h[0] - R.start[0]) * R.dir[0] + (h[2] - R.start[2]) * R.dir[1]) * 100; if (R.cur > R.best) R.best = R.cur; }
+    if (run.frameNo++ % 6 === 0) drawPanel(`Întinde-te ${REACH_TXT[R.plan[R.idx]][0]}`, ['Cât poți, fără pas. La maxim: trăgaciul.'], `${Math.max(0, Math.round(R.cur))} cm`);
+  } else if (run.phase === 'gap' && t >= R.gapEnd) reachReady();
+  else if (run.phase === 'done' && t >= run.doneAt) endRun();
+}
+function reachEnd() {
+  const R = run.reach;
+  R.results.push({ dir: R.plan[R.idx], cm: r1(Math.max(0, R.best)) });
+  sndEnd(); R.idx++;
+  if (R.idx < R.plan.length) { run.phase = 'gap'; R.gapEnd = run.lastT + 2; drawPanel('Revino drept', [`Notat: ${fmt(Math.max(0, R.best), 1)} cm.`]); }
+  else { run.phase = 'done'; run.doneAt = run.lastT + 2; drawPanel('Gata', ['Rezultatele apar pe pagină.']); }
+}
+function reachSummary(results) {
+  const by = d => results.filter(r => r.dir === d).map(r => r.cm);
+  const mean = a => a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length * 10) / 10 : null;
+  return { fwd: mean(by('fwd')), left: mean(by('left')), right: mean(by('right')), fwd_best: by('fwd').length ? Math.max(...by('fwd')) : null };
+}
+
 // ---------- evenimente XR comune
 function onSelect() {
+  if (run.kind === 'vert') { if (run.phase === 'ready') vertStartTrial(); else if (run.phase === 'adjust') vertConfirm(); return; }
+  if (run.kind === 'reach') { if (run.phase === 'ready') reachStart(); else if (run.phase === 'reach') reachEnd(); return; }
   if (run.phase === 'record' && run.rec && run.kind !== 'los' && run.kind !== 'fukuda') {
     const type = COND[run.conds[run.idx]].type;
     if (type === 'leg') legTouch(); else if (type === 'bess') bessError();
@@ -1179,13 +1385,27 @@ function onSqueeze() {
 }
 function onFrame(t, tr) {
   run.lastPose = tr; run.lastT = t;
-  if (run.kind === 'los') losFrame(t, tr); else if (run.kind === 'fukuda') fukFrame(t, tr); else swayFrame(t, tr);
+  if (run.kind === 'vert') vertFrame(t, tr); else if (run.kind === 'reach') reachFrame(t, tr);
+  else if (run.kind === 'los') losFrame(t, tr); else if (run.kind === 'fukuda') fukFrame(t, tr); else swayFrame(t, tr);
   if (link.open && link.role === 'host' && (run.liveTick = (run.liveTick || 0) + 1) % 7 === 0) linkSend({ t: 'live', st: liveState(tr) });
 }
 // ce vede calculatorul: faza, proba, secundele rămase și poziția capului față de start (cm)
 function liveState(tr) {
   if (!running) return { running: false };
   const st = { running, kind: run.kind, phase: run.phase, idx: run.idx, n: run.kind === 'los' ? LOS_DIRS.length : run.conds.length };
+  if (run.kind === 'vert') {
+    const V = run.vert, tr0 = V.plan[Math.min(V.idx, V.plan.length - 1)];
+    st.n = V.plan.length; st.idx = V.idx; st.label = tr0.test === 'svv' ? 'Verticala (SVV)' : `Rod and Frame, cadrul ${tr0.frame > 0 ? 'spre dreapta' : 'spre stânga'}`;
+    st.angle = V.angle; st.frame = tr0.frame; st.test = tr0.test;
+    st.canSelect = run.phase === 'ready' || run.phase === 'adjust'; st.selectLabel = run.phase === 'adjust' ? 'Confirmă: pare verticală' : 'Pornește';
+    return st;
+  }
+  if (run.kind === 'reach') {
+    const R = run.reach, d = R.plan[Math.min(R.idx, R.plan.length - 1)];
+    st.n = R.plan.length; st.idx = R.idx; st.label = `Atingere ${REACH_TXT[d][0]}`; st.cm = R.cur; st.best = R.best;
+    st.canSelect = run.phase === 'ready' || run.phase === 'reach'; st.selectLabel = run.phase === 'reach' ? 'Maxim atins' : 'Start (brațul întins)';
+    return st;
+  }
   if (run.kind === 'fukuda') {
     st.n = 1; st.idx = 0; st.label = 'Fukuda'; st.steps = run.fuk.steps || 0;
     if (run.phase === 'record' && run.rec && tr) {
@@ -1219,12 +1439,15 @@ async function startXR() {
     catch (e) { toast('Nu am putut încărca motorul 3D. Verifică conexiunea la internet.'); return; }
   }
   initThree();
+  dark.visible = false; vgroup.visible = false;
   const s = settings();
   run.kind = testKind();
   run.conds = s.conds; run.idx = 0; run.trials = []; run.dur = s.duration;
   run.journal = readJournal(); run.settings = s; run.phase = 'idle'; run.lastPose = null; run.frameNo = 0;
   run.los = run.kind === 'los' ? { idx: 0, center: null, heading: null, results: [], maxes: new Array(8).fill(null), trace: { t: [], ap: [], ml: [], dir: [] }, t0: 0 } : null;
   run.fuk = run.kind === 'fukuda' ? { steps: 0, result: null } : null;
+  run.vert = run.kind === 'vert' ? { plan: vertPlan(s.vert), idx: 0, results: [], lastT: null } : null;
+  run.reach = run.kind === 'reach' ? { plan: reachPlan(s.reach), idx: 0, results: [] } : null;
   let session;
   try { session = await navigator.xr.requestSession(xrMode, { optionalFeatures: ['local'] }); }
   catch (e) { toast('Nu am putut porni sesiunea VR: ' + (e.message || e)); return; }
@@ -1244,7 +1467,8 @@ async function startXR() {
       const ref = renderer.xr.getReferenceSpace();
       const pose = ref && frame.getViewerPose(ref);
       if (pose) {
-        if (!placed) { placed = true; run.lastPose = pose.transform; run.lastT = t; run.kind === 'los' ? losReady() : run.kind === 'fukuda' ? fukReady() : showReady(); }
+        if (!placed) { placed = true; run.lastPose = pose.transform; run.lastT = t; run.kind === 'los' ? losReady() : run.kind === 'fukuda' ? fukReady() : run.kind === 'vert' ? vertReady() : run.kind === 'reach' ? reachReady() : showReady(); }
+        run.xrFrame = frame; run.xrRef = ref;
         onFrame(t, pose.transform);
       }
     }
@@ -1262,7 +1486,7 @@ async function endRun(message, sessionAlreadyEnded) {
   try { renderer.setAnimationLoop(null); } catch (e) {}
   if (!sessionAlreadyEnded && run.session) { try { await run.session.end(); } catch (e) {} }
   run.session = null;
-  const hasData = run.kind === 'los' ? run.los.results.length > 0 : run.kind === 'fukuda' ? !!(run.fuk && run.fuk.result) : run.trials.length > 0;
+  const hasData = run.kind === 'vert' ? run.vert.results.length > 0 : run.kind === 'reach' ? run.reach.results.length > 0 : run.kind === 'los' ? run.los.results.length > 0 : run.kind === 'fukuda' ? !!(run.fuk && run.fuk.result) : run.trials.length > 0;
   if (hasData) { const saved = await saveSession({ simulated: false }); toast(saved ? (message || 'Test salvat.') : 'Test de probă: rezultatul nu s-a salvat.'); }
   else if (message) toast(message);
   updateStartState();
@@ -1284,6 +1508,8 @@ async function saveSession({ simulated }) {
   };
   if (run.kind === 'los') sess.los = { dirs: run.los.results, trace: run.los.trace };
   if (run.kind === 'fukuda') sess.fukuda = run.fuk.result;
+  if (run.kind === 'vert') { sess.trials = []; sess.vert = { results: run.vert.results, summary: vertSummary(run.vert.results) }; }
+  if (run.kind === 'reach') { sess.trials = []; sess.reach = { results: run.reach.results, summary: reachSummary(run.reach.results) }; }
   if ($('j-practice').checked) { sess.practice = true; practiceSessions.push(sess); await renderAll(); return false; }
   await dbPut(sess);
   await renderAll();
@@ -1332,6 +1558,16 @@ async function runSimulation() {
   run.journal = readJournal(); run.settings = settings();
   if (run.kind === 'los') { run.los = { results: simulateLos(), trace: null }; run.trials = []; }
   else if (run.kind === 'fukuda') { run.fuk = { result: simulateFukuda() }; run.trials = []; }
+  else if (run.kind === 'vert') {
+    const bias = (Math.random() - 0.5) * 2, pull = 1 + Math.random() * 4;
+    run.vert = { results: vertPlan(run.settings.vert).map(tr => { const roll = r1((Math.random() - 0.5) * 3), world = r1(bias + (tr.frame > 0 ? pull : tr.frame < 0 ? -pull : 0) + gauss() * 0.8); return { test: tr.test, frame: tr.frame, start: r1(tr.start), setting: r1(world - roll), roll, world, time_s: r1(6 + Math.random() * 8) }; }) };
+    run.trials = [];
+  }
+  else if (run.kind === 'reach') {
+    const base = { fwd: 28, left: 18, right: 17 };
+    run.reach = { results: reachPlan(run.settings.reach).map(d => ({ dir: d, cm: r1(base[d] + gauss() * 2.5) })) };
+    run.trials = [];
+  }
   else run.trials = run.settings.conds.map(c => simulateTrial(c, run.settings.duration));
   const saved = await saveSession({ simulated: true });
   toast(saved ? 'Simulare salvată (marcată ca simulare).' : 'Simulare de probă: nu s-a salvat.');
@@ -1351,7 +1587,7 @@ async function renderAll() {
   else allSessions = (await dbAll()).concat(practiceSessions);
   allSessions.sort((a, b) => a.date.localeCompare(b.date));
   sessions = allSessions.filter(s => profileOf(s) === curProfile());
-  renderLast(); renderLos(); renderAdv(); renderEvo();
+  renderLast(); renderLos(); renderAdv(); renderOther(); renderEvo();
   if (link.role === 'host') linkSend({ t: 'sessions', list: liteSessions(allSessions) });
 }
 const savedSessions = () => sessions.filter(s => !s.practice);
@@ -1445,6 +1681,7 @@ function trialNote(tr, dur) {
   if (info.type === 'leg') return tr.hold_s == null ? '' : (tr.touched ? `a ținut ${fmt(tr.hold_s, 1)} s` : `a ținut toate cele ${fmt(tr.hold_s, 0)} s`);
   if (info.type === 'hs') return tr.head ? `cap ±${fmt(tr.head.amp_deg, 0)}° · ${fmt(tr.head.freq_hz, 2)} Hz` : '';
   if (info.type === 'bess') return `${tr.errors ?? 0} greșeli`;
+  if (info.dual) return tr.dual_start ? `numărat de la ${tr.dual_start}` : '';
   return '';
 }
 function advCards(trials, dur) {
@@ -1459,6 +1696,8 @@ function advCards(trials, dur) {
     const h = c => get(c)?.hold_s;
     html += `<div class="prof"><span class="lbl">Într-un picior</span><span class="v">${fmt(h(legs[0]), 1)} / ${fmt(h(legs[1]), 1)}<small> s</small></span><p>Dreptul / stângul, ${legs[0].endsWith('closed') ? 'ochi închiși' : 'ochi deschiși'}: cât a ținut, din ${fmt(dur, 0)} s.</p></div>`;
   }
+  const du = get('foam_open_dual') ? ['foam_open_dual', 'foam_open', 'pe pernă'] : get('open_dual') ? ['open_dual', 'open', 'pe podea'] : null;
+  if (du) html += profileCard(ratio(du[0], du[1]), 'Dublă sarcină', `De câte ori crește oscilația ${du[2]} când numără înapoi, față de aceeași probă fără numărat.`);
   const hs = get('hs_foam') ? ['hs_foam', 'foam_closed', 'pe pernă'] : get('hs_floor') ? ['hs_floor', 'closed', 'pe podea'] : null;
   if (hs) {
     const hm = get(hs[0]).head;
@@ -1509,6 +1748,115 @@ function renderAdv() {
   drawPath(F, css('--accent'));
   ctx.fillStyle = css('--ink'); ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
 }
+
+// ---------- chestionare (traduceri neoficiale ale instrumentelor standard)
+const QDEF = {
+  dhi: { name: 'DHI', intro: 'Gândește-te doar la amețeala sau la nesiguranța ta. Da = 4 puncte, Uneori = 2, Nu = 0; scorul total e între 0 și 100.',
+    opts: [['Da', 4], ['Uneori', 2], ['Nu', 0]],
+    items: [['P', 'Privitul în sus îți accentuează problema?'], ['E', 'Din cauza problemei, te simți frustrat(ă)?'], ['F', 'Din cauza problemei, îți limitezi călătoriile de serviciu sau de plăcere?'],
+      ['P', 'Mersul pe culoarul unui supermarket îți accentuează problema?'], ['F', 'Din cauza problemei, îți vine greu să te urci în pat sau să te ridici din el?'],
+      ['F', 'Problema îți limitează mult viața socială, de exemplu ieșitul la masă, la film, la dans sau la petreceri?'], ['F', 'Din cauza problemei, îți vine greu să citești?'],
+      ['P', 'Activitățile mai solicitante, ca sportul, dansul sau treburile casnice (măturat, pus vasele la loc), îți accentuează problema?'],
+      ['E', 'Din cauza problemei, ți-e teamă să ieși din casă neînsoțit(ă)?'], ['E', 'Din cauza problemei, te-ai simțit jenat(ă) în fața altora?'], ['P', 'Mișcările rapide ale capului îți accentuează problema?'],
+      ['F', 'Din cauza problemei, eviți înălțimile?'], ['P', 'Întorsul în pat îți accentuează problema?'], ['F', 'Din cauza problemei, îți vine greu să faci treburi grele în casă sau în curte?'],
+      ['E', 'Din cauza problemei, ți-e teamă că alții ar putea crede că ai băut?'], ['F', 'Din cauza problemei, îți vine greu să mergi singur(ă) la plimbare?'], ['P', 'Mersul pe trotuar îți accentuează problema?'],
+      ['E', 'Din cauza problemei, îți vine greu să te concentrezi?'], ['F', 'Din cauza problemei, îți vine greu să mergi prin casă pe întuneric?'], ['E', 'Din cauza problemei, ți-e teamă să rămâi singur(ă) acasă?'],
+      ['E', 'Din cauza problemei, te simți cu un handicap?'], ['E', 'Problema ți-a pus la încercare relațiile cu familia sau cu prietenii?'], ['E', 'Din cauza problemei, te simți deprimat(ă)?'],
+      ['F', 'Problema te împiedică la serviciu sau în treburile casei?'], ['P', 'Aplecatul îți accentuează problema?']] },
+  abc: { name: 'ABC', intro: 'Cât de sigur(ă) ești că nu îți pierzi echilibrul și nu devii nesigur(ă) când… 0% = deloc sigur(ă), 100% = complet sigur(ă). Scorul e media.',
+    opts: Array.from({ length: 11 }, (_, i) => [`${i * 10}%`, i * 10]),
+    items: ['te plimbi prin casă?', 'urci sau cobori scările?', 'te apleci să iei un papuc de pe podea, din fața unui dulap?', 'iei o cutie mică de pe un raft, la nivelul ochilor?',
+      'te ridici pe vârfuri ca să ajungi la ceva deasupra capului?', 'te urci pe un scaun ca să ajungi la ceva?', 'mături pe jos?', 'ieși din casă până la mașina parcată în fața casei?',
+      'urci sau cobori din mașină?', 'traversezi o parcare spre un magazin?', 'urci sau cobori o rampă?', 'mergi printr-un mall aglomerat, unde oamenii trec repede pe lângă tine?',
+      'te lovește cineva din mers, prin mall?', 'urci pe scara rulantă sau cobori de pe ea, ținându-te de balustradă?',
+      'urci pe scara rulantă sau cobori de pe ea cu sacoșe în mâini, fără să te poți ține de balustradă?', 'mergi afară pe trotuare cu gheață?'].map(t => ['', t]) },
+  vvas: { name: 'VVAS', intro: 'Cât de tare te amețește sau te dezechilibrează fiecare situație: 0 = deloc, 10 = foarte tare.',
+    opts: Array.from({ length: 11 }, (_, i) => [String(i), i]),
+    items: ['mersul pe culoarul unui supermarket', 'mersul ca pasager în mașină', 'lumina tuburilor fluorescente (neoane)', 'privitul traficului la o intersecție aglomerată',
+      'mersul printr-un mall', 'coborâtul pe scara rulantă', 'un film la cinema', 'mersul pe o podea cu model (gresie, carouri)', 'un film de acțiune la televizor'].map(t => ['', t]) }
+};
+function qScore(q, answers) {
+  const sum = a => a.reduce((x, y) => x + y, 0);
+  if (q === 'dhi') {
+    const sub = k => sum(QDEF.dhi.items.map((it, i) => it[0] === k ? answers[i] : 0));
+    const total = sum(answers);
+    return { total, P: sub('P'), E: sub('E'), F: sub('F'), level: total <= 14 ? 'fără handicap' : total <= 34 ? 'ușor' : total <= 52 ? 'moderat' : 'sever' };
+  }
+  if (q === 'abc') return { total: Math.round(sum(answers) / answers.length * 10) / 10 };
+  return { total: Math.round(sum(answers) / answers.length * 10) / 10, positive: answers.filter(a => a > 0).length };
+}
+function renderQForm() {
+  const q = $('qSel').value, D = QDEF[q];
+  $('qIntro').textContent = D.intro;
+  $('qForm').innerHTML = D.items.map(([, text], i) => {
+    const ctl = q === 'dhi'
+      ? `<div class="qopts">${D.opts.map(([lab, v]) => `<label><input type="radio" name="q${i}" value="${v}">${lab}</label>`).join('')}</div>`
+      : `<select data-q="${i}" aria-label="${esc(text)}"><option value="">–</option>${D.opts.map(([lab, v]) => `<option value="${v}">${lab}</option>`).join('')}</select>`;
+    return `<div class="qitem"><p>${i + 1}. ${esc(text)}</p>${ctl}</div>`;
+  }).join('');
+  $('qHint').textContent = '';
+}
+function readQAnswers() {
+  const q = $('qSel').value, n = QDEF[q].items.length, a = [];
+  for (let i = 0; i < n; i++) {
+    const v = q === 'dhi' ? (document.querySelector(`input[name="q${i}"]:checked`) || {}).value : document.querySelector(`select[data-q="${i}"]`).value;
+    if (v === undefined || v === '') return { missing: i + 1 };
+    a.push(+v);
+  }
+  return { answers: a };
+}
+async function saveQuestionnaire(sess) {
+  if (!QDEF[sess.q] || !Array.isArray(sess.answers) || sess.answers.length !== QDEF[sess.q].items.length) return;
+  const now = new Date();
+  const full = { id: now.toISOString() + '-' + Math.random().toString(36).slice(2, 7), date: now.toISOString(), kind: 'q', q: sess.q, profile: curProfile(),
+                 answers: sess.answers.map(Number), score: qScore(sess.q, sess.answers.map(Number)), trials: [] };
+  await dbPut(full); await renderAll();
+  toast(`${QDEF[sess.q].name} salvat pentru ${profileName(curProfile())}.`);
+}
+$('qSel').addEventListener('change', renderQForm);
+$('btnQSave').addEventListener('click', async () => {
+  const r = readQAnswers();
+  if (r.missing) { $('qHint').textContent = `Lipsește răspunsul la întrebarea ${r.missing}.`; return; }
+  const sess = { q: $('qSel').value, answers: r.answers };
+  if (link.role === 'guest' && link.open) linkSend({ t: 'cmd', c: 'saveQ', sess }); else await saveQuestionnaire(sess);
+  renderQForm();
+});
+
+// rezumatul pe un rând, pentru istoric și CSV
+function otherSummary(s) {
+  if (kindOf(s) === 'q') {
+    const sc = s.score || {}, n = QDEF[s.q]?.name || s.q;
+    const text = s.q === 'dhi' ? `${sc.total} din 100 (${sc.level}) · fizic ${sc.P}, emoțional ${sc.E}, funcțional ${sc.F}` : s.q === 'abc' ? `${fmt(sc.total, 0)}% încredere` : `media ${fmt(sc.total, 1)} din 10 · ${sc.positive} din 9 situații deranjează`;
+    return { label: n, score: sc.total, text };
+  }
+  if (kindOf(s) === 'vert') {
+    const v = s.vert?.summary || {};
+    const side = x => x == null ? '–' : `${fmt(Math.abs(x), 1)}° spre ${x >= 0 ? 'dreapta' : 'stânga'}`;
+    return { label: 'Verticala', score: v.svv_mean ?? v.rft_effect, text: [v.svv_n ? `SVV ${side(v.svv_mean)} (± ${fmt(v.svv_sd, 1)}°)` : '', v.rft_n ? `cadrul trage ${fmt(v.rft_effect, 1)}°` : '', `capul ${side(v.roll_mean)}`].filter(Boolean).join(' · ') };
+  }
+  if (kindOf(s) === 'reach') {
+    const r = s.reach?.summary || {};
+    return { label: 'Atingere', score: r.fwd, text: [r.fwd != null ? `înainte ${fmt(r.fwd, 1)} cm` : '', r.left != null ? `stânga ${fmt(r.left, 1)} cm` : '', r.right != null ? `dreapta ${fmt(r.right, 1)} cm` : ''].filter(Boolean).join(' · ') };
+  }
+  return null;
+}
+function renderOther() {
+  const of = k => sessions.filter(s => !s.practice && kindOf(s) === k);
+  const qs = ['dhi', 'abc', 'vvas'].map(q => sessions.filter(s => kindOf(s) === 'q' && s.q === q));
+  const vert = of('vert'), reach = of('reach');
+  $('otherSection').hidden = !vert.length && !reach.length && !qs.some(l => l.length);
+  const card = (tag, list, extra) => { const l = list[list.length - 1], pv = list[list.length - 2]; if (!l) return ''; const a = otherSummary(l), b = pv ? otherSummary(pv) : null;
+    return `<div class="prof"><span class="tag">${tag}</span><span class="lbl">${esc(fmtDate(l.date))}${l.simulated ? ' · simulare' : ''}</span><span class="v">${esc(extra(l))}</span><p>${esc(a.text)}${b ? `. Anterior: ${esc(b.text)}.` : ''}</p></div>`; };
+  $('otherCards').innerHTML =
+    card('verticala (SVV)', vert, l => { const v = l.vert.summary; return v.svv_mean == null ? '–' : `${fmt(Math.abs(v.svv_mean), 1)}° ${v.svv_mean >= 0 ? 'dreapta' : 'stânga'}`; }) +
+    card('Rod and Frame', vert.filter(l => l.vert.summary.rft_effect != null), l => `${fmt(l.vert.summary.rft_effect, 1)}°`) +
+    card('atingere înainte', reach.filter(l => l.reach.summary.fwd != null), l => `${fmt(l.reach.summary.fwd, 1)} cm`) +
+    card('DHI', qs[0], l => `${l.score.total} / 100`) + card('ABC', qs[1], l => `${fmt(l.score.total, 0)}%`) + card('VVAS', qs[2], l => `${fmt(l.score.total, 1)} / 10`);
+  const rows = sessions.filter(s => ['q', 'vert', 'reach'].includes(kindOf(s))).slice().reverse().slice(0, 30)
+    .map(s => { const a = otherSummary(s); return `<tr><td>${fmtDate(s.date)}${s.simulated ? ' <span class="pill">simulare</span>' : ''}</td><td>${esc(a.label)}</td><td>${esc(a.text)}</td></tr>`; }).join('');
+  $('otherTable').innerHTML = rows ? `<thead><tr><th>Data</th><th>Test</th><th>Rezultat</th></tr></thead><tbody>${rows}</tbody>` : '';
+}
+// SVV: în mod obișnuit sub ~2° de la verticală; Rod and Frame: un efect mare = percepție dependentă de vedere
 
 function drawLosShape(ctx, dirs, cx, cy, k, style) {
   ctx.beginPath();
@@ -1576,7 +1924,9 @@ function renderEvo() {
   const rowsHtml = savedSessions().reverse().map(s => {
     const j = s.journal || {};
     const tail = `<td class="num">${j.instabilitate ?? '–'}</td><td class="num">${j.ameteala ?? '–'}</td><td>${j.perioada_grea ? '<span class="pill bad">da</span>' : 'nu'}</td><td><button class="small danger" data-del="${esc(s.id)}">Șterge</button></td>`;
-    const kindLabel = { los: 'aplecări', bess: 'BESS', fukuda: 'Fukuda' }[kindOf(s)] || 'balans';
+    const kindLabel = { los: 'aplecări', bess: 'BESS', fukuda: 'Fukuda', q: 'chestionar', vert: 'verticală', reach: 'atingere' }[kindOf(s)] || 'balans';
+    const os = otherSummary(s);
+    if (os) return `<tr><td>${fmtDate(s.date)}${s.simulated ? ' <span class="pill">simulare</span>' : ''}</td><td>${esc(os.label)}</td><td colspan="5">${esc(os.text)}</td>${tail}</tr>`;
     const date = `<td>${fmtDate(s.date)}${s.simulated ? ' <span class="pill">simulare</span>' : ''}</td><td>${kindLabel}${s.settings?.stance ? ' · ' + esc(s.settings.stance) : ''}</td>`;
     if (kindOf(s) === 'bess') return `<tr>${date}<td colspan="5">${s.trials.reduce((a, t) => a + (t.errors || 0), 0)} greșeli în 6 probe</td>${tail}</tr>`;
     if (kindOf(s) === 'fukuda') { const F = s.fukuda || {}; return `<tr>${date}<td colspan="5">rotire ${fmt(Math.abs(F.rotation_deg), 0)}° ${F.rotation_deg >= 0 ? 'dreapta' : 'stânga'} · deplasare ${fmt(F.distance_cm, 0)} cm · ${F.steps ?? '–'} pași</td>${tail}</tr>`; }
@@ -1680,26 +2030,28 @@ $('btnCsv').addEventListener('click', () => {
   const head = ['data', 'persoana', 'tip_test', 'simulare', 'picioare', 'nesiguranta_0_10', 'ameteala_0_10', 'somn_ore', 'zi_mai_grea', 'durere_cap', 'observatii',
     'proba', 'oprita', 'motiv_oprire', 'durata_analizata_s', 'viteza_cm_s', 'traseu_cm', 'arie95_cm2', 'rms_fata_spate_cm', 'rms_lateral_cm', 'amplitudine_fata_spate_cm', 'amplitudine_lateral_cm',
     'raport_fara_vedere', 'raport_pe_perna', 'raport_doar_ureche_interna', 'limita_aplecare_cm',
-    'tinut_s', 'greseli', 'cap_amplitudine_grade', 'cap_frecventa_hz', 'fukuda_rotire_grade', 'fukuda_deplasare_cm', 'fukuda_pasi'];
+    'tinut_s', 'greseli', 'cap_amplitudine_grade', 'cap_frecventa_hz', 'fukuda_rotire_grade', 'fukuda_deplasare_cm', 'fukuda_pasi', 'scor', 'detalii'];
   const lines = [head.join(',')];
   const pv = p => p == null ? '' : p.stopped ? 'oprita' : p.value;
   sessions.forEach(s => {
     const j = s.journal || {};
-    const common = [s.date, profileName(profileOf(s)), { los: 'limite stabilitate', bess: 'BESS', fukuda: 'Fukuda' }[kindOf(s)] || 'balans', s.simulated ? 'da' : 'nu', s.settings?.stance, j.instabilitate, j.ameteala, j.somn_ore, j.perioada_grea ? 'da' : 'nu', j.durere_cap ? 'da' : 'nu', j.observatii];
+    const common = [s.date, profileName(profileOf(s)), { los: 'limite stabilitate', bess: 'BESS', fukuda: 'Fukuda', q: 'chestionar', vert: 'verticala', reach: 'atingere' }[kindOf(s)] || 'balans', s.simulated ? 'da' : 'nu', s.settings?.stance, j.instabilitate, j.ameteala, j.somn_ore, j.perioada_grea ? 'da' : 'nu', j.durere_cap ? 'da' : 'nu', j.observatii];
     if (kindOf(s) === 'los') {
-      s.los.dirs.forEach(d => lines.push([...common, 'aplecare ' + d.name, d.stopped ? 'da' : 'nu', '', '', '', '', '', '', '', '', '', '', '', '', d.max_cm, '', '', '', '', '', '', ''].map(csvCell).join(',')));
+      s.los.dirs.forEach(d => lines.push([...common, 'aplecare ' + d.name, d.stopped ? 'da' : 'nu', '', '', '', '', '', '', '', '', '', '', '', '', d.max_cm, '', '', '', '', '', '', '', '', ''].map(csvCell).join(',')));
       return;
     }
     if (kindOf(s) === 'fukuda') {
       const F = s.fukuda || {};
-      lines.push([...common, 'Fukuda', F.stopped ? 'da' : 'nu', F.reason, F.duration_s, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', F.rotation_deg, F.distance_cm, F.steps].map(csvCell).join(','));
+      lines.push([...common, 'Fukuda', F.stopped ? 'da' : 'nu', F.reason, F.duration_s, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', F.rotation_deg, F.distance_cm, F.steps, '', ''].map(csvCell).join(','));
       return;
     }
+    const os = otherSummary(s);
+    if (os) { lines.push([...common, os.label, ...new Array(21).fill(''), os.score, os.text].map(csvCell).join(',')); return; }
     const pr = sensoryProfile(s.trials);
     s.trials.forEach(t => {
       const m = t.metrics || {};
       lines.push([...common, COND[t.cond].label, t.stopped ? 'da' : 'nu', t.reason, m.duration_s, m.velocity_cms, m.path_cm, m.area95_cm2, m.rmsAP_cm, m.rmsML_cm, m.rangeAP_cm, m.rangeML_cm,
-        pv(pr.romberg), pv(pr.foam), pv(pr.vestibular), '', t.hold_s, t.errors, t.head?.amp_deg, t.head?.freq_hz, '', '', ''].map(csvCell).join(','));
+        pv(pr.romberg), pv(pr.foam), pv(pr.vestibular), '', t.hold_s, t.errors, t.head?.amp_deg, t.head?.freq_hz, '', '', '', '', ''].map(csvCell).join(','));
     });
   });
   download(`jurnal-echilibru-${stamp()}.csv`, '﻿' + lines.join('\n'), 'text/csv;charset=utf-8');
@@ -1756,7 +2108,7 @@ $('fileImport').addEventListener('change', async e => {
   e.target.value = '';
 });
 
-try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderLast(); renderLos(); renderAdv(); renderEvo(); }); } catch (e) {}
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderLast(); renderLos(); renderAdv(); renderOther(); renderEvo(); }); } catch (e) {}
 
 // notițele din evaluarea clinică: doar în acest browser, afișate lângă instrucțiunile testului
 function loadClinical(id = curProfile()) { try { return localStorage.getItem(clinKey(id)) || ''; } catch (e) { return ''; } }
@@ -1827,7 +2179,7 @@ showClinical();
 // date de test. Fără server TURN: dacă legătura directă nu merge, nu se face deloc, nu printr-un releu.
 const PEER_PREFIX = 'balance-journal-xr-';
 const PEER_OPTS = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } };
-const SYNC_IDS = ['profileSel', 'refSel', 'k-adv', 'j-instab', 'j-amet', 'j-somn', 'j-greu', 'j-cap', 'j-note', 'j-practice', 'k-sway', 'k-los', 'k-bess', 'k-fukuda', 's-stance', 's-dur',
+const SYNC_IDS = ['profileSel', 'refSel', 'k-adv', 'k-vert', 'k-reach', 'v-svv', 'v-rft', 'r-fwd', 'r-side', 'j-instab', 'j-amet', 'j-somn', 'j-greu', 'j-cap', 'j-note', 'j-practice', 'k-sway', 'k-los', 'k-bess', 'k-fukuda', 's-stance', 's-dur',
   ...ORDER.map(c => 'c-' + c), 'k-wall', 'k-person', 'k-ok', 'clin'];
 let applyingRemote = false;
 
@@ -1972,6 +2324,8 @@ async function onLinkData(m) {
       if (m.c === 'select') onSelect();
       else if (m.c === 'stop') onSqueeze();
       else if (m.c === 'touch') legTouch();
+      else if (m.c === 'rot' && run.kind === 'vert' && run.phase === 'adjust' && typeof m.deg === 'number') run.vert.remote += Math.max(-5, Math.min(5, m.deg));
+      else if (m.c === 'saveQ' && m.sess && typeof m.sess === 'object') await saveQuestionnaire(m.sess);
       else if (m.c === 'error') bessError();
       else if (m.c === 'sim' && !running) await runSimulation();
       else if (m.c === 'profileAdd' && typeof m.name === 'string' && m.name.trim()) addProfile(m.name.trim());
@@ -1985,13 +2339,25 @@ async function onLinkData(m) {
 function renderLive(st) {
   link.live = st;
   const on = !!st.running;
-  $('btnNext').disabled = !(on && st.phase === 'ready');
+  $('btnNext').disabled = !(on && (st.phase === 'ready' || st.canSelect));
+  $('btnNext').textContent = on && st.selectLabel ? st.selectLabel : 'Pornește proba';
+  ['btnRotL2', 'btnRotL1', 'btnRotR1', 'btnRotR2'].forEach(id => { $(id).hidden = !(on && st.kind === 'vert' && st.phase === 'adjust'); });
   $('btnAbort').disabled = !on;
   $('btnTouch').hidden = !(on && st.type === 'leg' && st.phase === 'record');
   $('btnErr').hidden = !(on && st.type === 'bess' && st.phase === 'record');
   $('btnErr').textContent = `+1 greșeală (${st.errors || 0})`;
   let title = 'Testul nu rulează', sub = 'Completează formularul de mai jos. Apoi persoana cu casca apasă butonul mare „Pornește testul”.';
-  if (on && st.kind === 'fukuda') {
+  if (on && st.kind === 'vert') {
+    title = `${st.label} · ${Math.min(st.idx + 1, st.n)} din ${st.n}`;
+    sub = st.phase === 'ready' ? 'Pe scaun, capul drept. Apasă „Pornește” când e gata.'
+      : st.phase === 'adjust' ? `Linia e la ${fmt(Math.abs(st.angle || 0), 1)}° spre ${(st.angle || 0) >= 0 ? 'dreapta' : 'stânga'} (față de cap). Rotește după indicațiile ei, apoi „Confirmă”.`
+      : st.phase === 'gap' ? 'Următoarea linie…' : st.phase === 'done' ? 'Test terminat. Se salvează…' : '';
+  } else if (on && st.kind === 'reach') {
+    title = `${st.label} · ${Math.min(st.idx + 1, st.n)} din ${st.n}`;
+    sub = st.phase === 'ready' ? 'Brațul întins la umăr. „Start” notează poziția de plecare.'
+      : st.phase === 'reach' ? `Acum: ${fmt(Math.max(0, st.cm || 0), 1)} cm · maxim ${fmt(Math.max(0, st.best || 0), 1)} cm`
+      : st.phase === 'gap' ? 'Revine drept…' : st.phase === 'done' ? 'Test terminat. Se salvează…' : '';
+  } else if (on && st.kind === 'fukuda') {
     title = 'Fukuda · 50 de pași pe loc';
     sub = st.phase === 'ready' ? 'Brațele înainte. Apasă „Pornește proba” când e gata.'
       : st.phase === 'countdown' ? `Începe în ${st.secLeft}…`
@@ -2018,6 +2384,25 @@ function renderLive(st) {
 function drawLive(st) {
   const cv = $('livePlot'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2;
   ctx.clearRect(0, 0, W, H); ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
+  if (st.running && st.kind === 'vert') {
+    // ce vede persoana: linia (și cadrul), față de cap
+    ctx.fillStyle = '#111'; ctx.fillRect(0, 0, W, H);
+    const rot = (deg, len, w, color) => { ctx.save(); ctx.translate(cx, cy); ctx.rotate(deg * Math.PI / 180); ctx.fillStyle = color; ctx.fillRect(-w / 2, -len / 2, w, len); ctx.restore(); };
+    if (st.test === 'rft') { ctx.save(); ctx.translate(cx, cy); ctx.rotate(st.frame * Math.PI / 180); ctx.strokeStyle = '#8a8a7a'; ctx.lineWidth = 6; ctx.strokeRect(-200, -200, 400, 400); ctx.restore(); }
+    if (st.phase === 'adjust') rot(st.angle || 0, 300, 6, '#d8d8c8');
+    ctx.strokeStyle = '#3a4a44'; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.moveTo(cx, 20); ctx.lineTo(cx, H - 20); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#93a39d'; ctx.font = '22px "IBM Plex Mono", monospace'; ctx.textAlign = 'left'; ctx.fillText('linia punctată = verticala capului', 14, H - 14);
+    return;
+  }
+  if (st.running && st.kind === 'reach') {
+    const max = Math.max(40, Math.ceil((st.best || 0) / 10) * 10 + 10), k = (W - 80) / max, y0 = cy;
+    ctx.strokeStyle = css('--grid'); ctx.fillStyle = css('--muted'); ctx.font = '22px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+    for (let v = 0; v <= max; v += 10) { ctx.beginPath(); ctx.moveTo(40 + v * k, y0 - 60); ctx.lineTo(40 + v * k, y0 + 60); ctx.stroke(); ctx.fillText(String(v), 40 + v * k, y0 + 90); }
+    ctx.fillStyle = css('--accent'); ctx.fillRect(40, y0 - 20, Math.max(0, st.cm || 0) * k, 40);
+    ctx.fillStyle = css('--bad'); ctx.fillRect(40 + Math.max(0, st.best || 0) * k - 3, y0 - 40, 6, 80);
+    ctx.fillStyle = css('--muted'); ctx.textAlign = 'left'; ctx.fillText('cm · linia roșie = maximul', 14, H - 14);
+    return;
+  }
   const los = st.kind === 'los', fuk = st.kind === 'fukuda';
   const half = fuk ? 100 : los ? 22 : 6;   // cm de la centru la margine
   const k = (W / 2 - 40) / half;
@@ -2068,9 +2453,11 @@ $('btnBig').addEventListener('click', () => { if (!$('btnStart').disabled) start
 $('btnNext').addEventListener('click', () => linkSend({ t: 'cmd', c: 'select' }));
 $('btnAbort').addEventListener('click', () => linkSend({ t: 'cmd', c: 'stop' }));
 $('btnTouch').addEventListener('click', () => linkSend({ t: 'cmd', c: 'touch' }));
+[['btnRotL2', -1], ['btnRotL1', -0.2], ['btnRotR1', 0.2], ['btnRotR2', 1]].forEach(([id, deg]) => $(id).addEventListener('click', () => linkSend({ t: 'cmd', c: 'rot', deg })));
 $('btnErr').addEventListener('click', () => linkSend({ t: 'cmd', c: 'error' }));
 addEventListener('pagehide', () => resetPeer());
 
+renderQForm();
 loadPrefs();
 updateStartState();
 detectXR().then(() => { if (/OculusBrowser|Quest/.test(navigator.userAgent)) startHost(); });

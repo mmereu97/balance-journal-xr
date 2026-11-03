@@ -38,6 +38,17 @@ I built it for a member of my family, so the interface is in Romanian. **All res
 | BESS | 6 × 20 s, eyes closed, hands on hips: double, single and tandem stance, on floor and foam | errors counted by the companion (or the trigger); large steps are counted automatically |
 | Fukuda stepping test | 50 steps in place with eyes closed and arms forward | steps counted from the vertical head bob; rotation in degrees and displacement in cm, measured directly instead of read off floor marks |
 
+**Seated and reach tests:**
+
+| Test | How | What is measured |
+|---|---|---|
+| Subjective visual vertical (SVV) | seated, the headset goes dark and shows one line; it is turned with the thumbstick (or by the companion, as in the clinical bucket test) until it looks vertical, 8 trials | mean deviation from gravity and its spread; the head's own tilt is measured and taken into account |
+| Rod and frame | the same line inside a square frame tilted 18° to either side, 8 trials | how far the frame pulls the line, a measure of visual dependence |
+| Functional reach | arm out at shoulder height, controller in hand; reach as far as possible forward and sideways without stepping, 3 trials each | centimetres the hand travelled, from the controller |
+| Dual task | the sway conditions on floor and foam with eyes open, while counting backwards by threes aloud | how much the counting increases sway |
+
+**Questionnaires** (monthly, no headset): DHI (Dizziness Handicap Inventory, total and physical, emotional, functional subscores), ABC (Activities-specific Balance Confidence) and VVAS (visual vertigo). The Romanian wording is an unofficial translation; scores are meant for tracking over time and for talking to the doctor.
+
 **Limits of stability** (once a week): a top-down map shows the head as a red dot. For each of eight directions: 3 seconds centred, then a slow lean from the ankles, without lifting the feet, towards a 15 cm target circle, then back.
 
 **People:** one headset, several people. Every test belongs to the person selected at the top of the journal; results, charts, exports and clinical notes are kept apart. **Compare with** shows another person's averages next to the current ones, for example a healthy family member as a reference: under each sensory ratio, and as dashed lines on the evolution chart (real saved tests only, same foot position). Names stay in the headset browser.
